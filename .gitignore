@@ -1,0 +1,21 @@
+node_modules/
+
+# Secrets. Never commit these.
+.env
+.env.local
+
+# Runtime state. On GitHub Actions this lives on the bot-state branch instead,
+# so committing a local copy would fight with it.
+state.json
+
+*.log
+npm-debug.log*
+.DS_Store
+dist/
+
+# Local editor / tooling config. Not part of the bot, and nothing here belongs
+# in a public repo.
+.claude/
+.mcp.json
+.vscode/
+.idea/

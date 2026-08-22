@@ -1,0 +1,39 @@
+name: Self-test
+
+# Runs on every push, including edits made through GitHub's web editor.
+#
+# This exists mainly to catch a bad config.json. You are meant to edit that file
+# directly on github.com, and a mistake there — weights that don't sum to 100, a
+# stray comma, a threshold of 700 — would otherwise fail silently on every
+# 5-minute run until you noticed the missing alerts. This turns that into a red X
+# on the commit you just made.
+
+on:
+  push:
+    paths:
+      - 'src/**'
+      - 'test/**'
+      - 'config.json'
+      - 'package.json'
+      - '.github/workflows/**'
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  selftest:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    strategy:
+      matrix:
+        # 18 is the floor the code targets, 20 is what the sniper runs on.
+        node: ['18', '20']
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node }}
+      - run: npm run check
+      - run: npm run selftest

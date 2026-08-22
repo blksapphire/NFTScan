@@ -1,0 +1,100 @@
+name: Mint sniper
+
+# The $0 host. Each run is a short-lived container that loads state, checks
+# OpenSea, sends any alerts, and saves state back. Nothing stays running.
+#
+# Public repository = unlimited Actions minutes. On a private repo the free tier
+# gives 2,000 minutes/month, and this schedule needs roughly 8,600 runs/month, so
+# a private repo will run out. Keep it public (your secrets stay encrypted) or
+# widen the cron interval.
+
+on:
+  schedule:
+    # Every 5 minutes, deliberately offset off the round marks. GitHub queues a
+    # huge number of jobs at :00, :15, :30 and :45; scheduled runs are delayed or
+    # silently dropped under that load, so we sit in the quieter gaps.
+    - cron: '3,8,13,18,23,28,33,38,43,48,53,58 * * * *'
+
+  # Lets you run it by hand from the Actions tab. Use this for your first run.
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: 'Score and log, but send nothing to Telegram'
+        type: boolean
+        default: false
+
+# GITHUB_TOKEN needs write access to push the state branch. Nothing else.
+permissions:
+  contents: write
+
+# Two runs must never overlap: both would read the same state and force-push
+# over each other, causing duplicate alerts. A delayed run is dropped instead.
+concurrency:
+  group: mint-sniper-state
+  cancel-in-progress: false
+
+jobs:
+  poll:
+    runs-on: ubuntu-latest
+    # A normal run takes well under a minute. This is a hang guard, so a stuck
+    # socket can't burn an hour of runner time.
+    timeout-minutes: 8
+
+    steps:
+      - name: Check out the bot
+        uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+        # No `cache: npm` and no `npm ci`: this project has zero dependencies,
+        # which is most of why a run finishes in seconds.
+
+      - name: Verify the code parses
+        run: npm run check
+
+      - name: Restore state from the bot-state branch
+        # Holds "which contracts have I already alerted on" and the Telegram
+        # command cursor. Absent on the very first run, which is fine.
+        run: |
+          set -euo pipefail
+          if git fetch --depth=1 origin bot-state 2>/dev/null; then
+            git show FETCH_HEAD:state.json > state.json
+            echo "Restored state.json ($(wc -c < state.json) bytes)"
+          else
+            echo "No bot-state branch yet — starting fresh."
+          fi
+
+      - name: Run the sniper
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+          # Optional. Left unset, the bot mints itself a free key each run.
+          OPENSEA_API_KEY: ${{ secrets.OPENSEA_API_KEY }}
+          MODE: poll
+          DRY_RUN: ${{ inputs.dry_run }}
+        run: node src/index.js --once
+
+      - name: Save state back to the bot-state branch
+        # always(): even if the run failed partway, the Telegram command cursor
+        # may have advanced. Losing it would replay old commands next run.
+        if: always()
+        run: |
+          set -euo pipefail
+          [ -f state.json ] || { echo "No state.json to save."; exit 0; }
+
+          # Written with git plumbing rather than checkout/commit/push so we
+          # never touch the working tree, and so the branch is created on first
+          # run without any orphan-branch setup.
+          BLOB=$(git hash-object -w state.json)
+          TREE=$(printf '100644 blob %s\tstate.json\n' "$BLOB" | git mktree)
+          COMMIT=$(git commit-tree "$TREE" -m "state @ $(date -u +%Y-%m-%dT%H:%M:%SZ)")
+
+          # Deliberately PARENTLESS, and force-pushed. Only the latest state is
+          # ever read, so at 12 runs an hour a real history would reach ~100,000
+          # commits in a year and bloat the clone for no benefit. This keeps the
+          # branch at exactly one commit forever.
+          # Braces around ${COMMIT} are load-bearing: unbraced, some shells read
+          # the ":r" of ":refs/..." as a parameter modifier and mangle the refspec.
+          git push --force origin "${COMMIT}:refs/heads/bot-state"
+          echo "Saved state ($(wc -c < state.json) bytes)."

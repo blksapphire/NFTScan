@@ -1,0 +1,40 @@
+name: Keepalive
+
+# GitHub disables scheduled workflows on public repositories after 60 days of
+# repository inactivity, and emails the owner when it does. The sniper's own
+# state pushes are made with GITHUB_TOKEN, and token-authored commits are not a
+# reliable way to reset that timer — so this makes one real commit a month to the
+# default branch purely to keep the schedule alive.
+#
+# If you ever get the "we disabled your workflow" email anyway, you don't need
+# this: open the Actions tab and click "Enable workflow". One click, and the
+# 5-minute schedule resumes.
+
+on:
+  schedule:
+    # 06:11 UTC on the 1st of each month. Odd minute, off-peak, for the same
+    # queueing reasons as the main workflow.
+    - cron: '11 6 1 * *'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  keepalive:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Touch the heartbeat file
+        run: |
+          set -euo pipefail
+          date -u +%Y-%m-%dT%H:%M:%SZ > .keepalive
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add .keepalive
+          # Nothing to do if the timestamp somehow matches.
+          git diff --staged --quiet && { echo "No change."; exit 0; }
+          git commit -m 'chore: keepalive so the schedule is not auto-disabled'
+          git push
