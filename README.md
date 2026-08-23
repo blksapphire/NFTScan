@@ -301,7 +301,7 @@ Fill in `TELEGRAM_BOT_TOKEN` and `TELEGRAM_CHAT_ID`, then:
 npm run selftest
 ```
 
-154 offline checks covering scoring, wash-mint detection, HTML escaping, and state handling.
+161 offline checks covering scoring, wash-mint detection, HTML escaping, and state handling.
 No network, no key, no Telegram needed — run this first.
 
 ```bash
@@ -381,7 +381,7 @@ The Dockerfile uses Node 22 so it stays dependency-free.
 │  ├─ stream.js          # always-on websocket mode
 │  ├─ state.js           # dedupe, cursor, counters — the file that gets committed
 │  └─ util.js            # formatting and math helpers
-├─ test/selftest.js      # 154 offline checks
+├─ test/selftest.js      # 161 offline checks
 ├─ config.json           # your screener — edit this on github.com
 ├─ Dockerfile            # always-on mode
 └─ .env.example
