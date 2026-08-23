@@ -40,6 +40,14 @@ export class OpenSeaClient {
     this.debug = debug;
     this.maxRequests = maxRequests;
 
+    /**
+     * Whether the key came from configuration rather than from us minting one.
+     * A supplied key is not ours to silently replace: if OpenSea rejects it, the
+     * user needs to hear that their key is dead, not have it swapped for a
+     * 7-day throwaway behind their back.
+     */
+    this.suppliedKey = Boolean(apiKey);
+
     this.requestsUsed = 0;
     this.rateLimitRemaining = null;
     this.rateLimitReset = null;
@@ -246,15 +254,31 @@ export class OpenSeaClient {
         );
       }
 
-      // An expired or revoked key: mint a fresh one and retry once.
-      if ((res.status === 401 || res.status === 403) && attempt < MAX_RETRIES) {
-        this.log(`HTTP ${res.status}; key may have expired, minting a new one`);
-        try {
-          await this.fetchFreeKey();
-          continue;
-        } catch {
-          // Fall through to the generic error below.
+      // A rejected key. This is the expected way a run dies about a week after
+      // you paste in a free "instant" key, since those last 7 days — and the
+      // runner cannot mint a replacement, because that endpoint is per-IP rate
+      // limited and CI IPs are shared. So say what to do rather than reporting a
+      // bare HTTP 401.
+      if (res.status === 401 || res.status === 403) {
+        // Only a key we minted ourselves is ours to replace.
+        if (!this.suppliedKey && attempt < MAX_RETRIES) {
+          this.log(`HTTP ${res.status}; our temporary key may have expired, minting a new one`);
+          try {
+            await this.fetchFreeKey();
+            continue;
+          } catch {
+            // Fall through to the error below, which is the useful one.
+          }
         }
+        if (optional) return null;
+        throw new OpenSeaError(
+          `OpenSea rejected the API key (HTTP ${res.status}) on ${path}. ` +
+            `If it is a free "instant" key, expiry is the usual cause — those last 7 days. ` +
+            `Mint a replacement with \`npm run newkey\` on your own machine, then update the ` +
+            `OPENSEA_API_KEY secret. A runner cannot mint one for you (that endpoint is rate ` +
+            `limited per IP and CI IPs are shared).`,
+          'KEY_REJECTED'
+        );
       }
 
       if (res.status === 404) {

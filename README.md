@@ -305,11 +305,43 @@ Either kind of key is rate-limited to roughly 600 reads/hour. The request budget
 `config.json` (`budget.maxRequestsPerRun: 40`) is set so 12 runs/hour stays under that ceiling.
 Raise the cron interval before raising that number.
 
-### If that Developer page is gated
+### If that Developer page says you are not eligible
 
-If opensea.io does not just hand you a key — some accounts see an application form — say so and
-we will point the collectors at a public indexer such as Reservoir, which needs no key. The
-detection and scoring layers do not care where the collection data comes from.
+OpenSea gates the **full** API key: their docs require an opensea.io account with a *verified,
+non-anonymous* email address, plus an organization name, website, and stated use case. Signing up
+with a privacy alias (Apple Hide My Email, DuckDuckGo, SimpleLogin and friends) is the common
+reason for being told you are not eligible — the docs state anonymous addresses are not
+supported. Re-applying with an ordinary address usually clears it.
+
+Meanwhile the **instant key** needs no approval at all, and it is not a lesser credential: same
+`X-API-KEY` header, documented at 600 reads/hour, which is the exact ceiling
+`budget.maxRequestsPerRun` was tuned against. Nothing in the code changes. Mint one on your own
+machine, where you own the IP:
+
+```bash
+npm run newkey
+```
+
+Paste the printed value into the `OPENSEA_API_KEY` secret. To check any key before trusting it:
+
+```bash
+npm run diagnose
+```
+
+That makes a real authenticated request and says whether the key is accepted, rejected, or rate
+limited, and prints your true rate-limit headroom from the response headers — OpenSea describes
+its published numbers as examples rather than a spec, so the headers are the only reliable
+source. It never prints the key, only its length.
+
+**The catch: instant keys expire after about 7 days.** When yours does, runs fail with *"OpenSea
+rejected the API key … expiry is the usual cause"* on the run summary, and you mint a replacement
+the same way. The runner cannot do it for you, for the shared-IP reason above. If that weekly
+chore annoys you, the full key is the permanent fix.
+
+### If you would rather not depend on OpenSea keys at all
+
+Say so and the collectors can be pointed at a public indexer such as Reservoir, which needs no
+key. The detection and scoring layers do not care where the collection data comes from.
 
 ---
 
@@ -327,7 +359,8 @@ Fill in `TELEGRAM_BOT_TOKEN` and `TELEGRAM_CHAT_ID`, then:
 npm run selftest
 ```
 
-183 offline checks covering scoring, wash-mint detection, HTML escaping, and state handling.
+192 offline checks covering scoring, wash-mint detection, HTML escaping, state handling, and
+the exact wording of every setup error.
 No network, no key, no Telegram needed — run this first.
 
 ```bash
@@ -407,7 +440,9 @@ The Dockerfile uses Node 22 so it stays dependency-free.
 │  ├─ stream.js          # always-on websocket mode
 │  ├─ state.js           # dedupe, cursor, counters — the file that gets committed
 │  └─ util.js            # formatting and math helpers
-├─ test/selftest.js      # 183 offline checks
+├─ test/
+│  ├─ selftest.js        # 192 offline checks
+│  └─ diagnose.js        # `npm run diagnose` — network + API key triage
 ├─ config.json           # your screener — edit this on github.com
 ├─ Dockerfile            # always-on mode
 └─ .env.example

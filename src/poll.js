@@ -42,6 +42,7 @@ const RUN_ENDING_CODES = [
   'RATE_LIMITED',
   'KEY_FETCH_FAILED',
   'KEY_RATE_LIMITED',
+  'KEY_REJECTED',
   'KEY_SHAPE_UNEXPECTED',
 ];
 
@@ -117,6 +118,7 @@ export async function runPoll(cfg, state) {
   if (attempted > 0 && succeeded === 0) {
     const first = failures[0];
     const keyProblem = failures.some((f) => String(f.code || '').startsWith('KEY_'));
+    const expired = failures.some((f) => f.code === 'KEY_REJECTED');
 
     console.error(
       `[poll] NO SOURCE SUCCEEDED — this run screened nothing. ` +
@@ -125,14 +127,24 @@ export async function runPoll(cfg, state) {
             `would have hit the same wall.`
           : `${failures.length}/${attempted} source(s) failed.`)
     );
+
+    // The title is what shows on the run summary, so it has to name the actual
+    // fault: an expired key and an absent key need different actions.
+    let title = 'Mint sniper: OpenSea unreachable';
+    if (expired) title = 'Mint sniper: OpenSea API key rejected (probably expired)';
+    else if (keyProblem) title = 'Mint sniper: no OpenSea API key';
+
     ciAnnotate(
       'error',
-      keyProblem ? 'Mint sniper: no OpenSea API key' : 'Mint sniper: OpenSea unreachable',
+      title,
       keyProblem
         ? `This run screened nothing because it has no usable OpenSea API key.\n` +
             `${first.message}\n` +
-            `Fix: add a repository secret named OPENSEA_API_KEY (Settings -> Secrets and ` +
-            `variables -> Actions) using a key from opensea.io -> Settings -> Developer.`
+            (expired
+              ? `Replace it: run \`npm run newkey\` locally, then update the OPENSEA_API_KEY ` +
+                `secret under Settings -> Secrets and variables -> Actions.`
+              : `Fix: add a repository secret named OPENSEA_API_KEY (Settings -> Secrets and ` +
+                `variables -> Actions) using a key from opensea.io -> Settings -> Developer.`)
         : `This run screened nothing — all ${attempted} source(s) failed.\n${first.message}\n` +
             `If this clears on the next run it was a transient blip and can be ignored.`
     );

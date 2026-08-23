@@ -33,7 +33,7 @@ export function stripComments(obj) {
  * Minimal `.env` reader. Node 18 has no --env-file, and pulling in dotenv for
  * twelve lines of parsing is not worth a dependency.
  */
-function loadDotEnv(file) {
+export function loadDotEnv(file) {
   if (!existsSync(file)) return;
   for (const rawLine of readFileSync(file, 'utf8').split('\n')) {
     const line = rawLine.trim();

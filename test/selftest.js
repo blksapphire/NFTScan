@@ -1120,6 +1120,98 @@ function goodCandidate(overrides = {}) {
   }
 }
 
+// --- A rejected key reads as expired, not as a generic HTTP error ----------
+
+// The free "instant" key lasts 7 days, so on a 5-minute cron this failure is not
+// hypothetical — it is scheduled. And the runner cannot mint a replacement, since
+// that endpoint is per-IP rate limited and CI IPs are shared. So the error has to
+// carry the renewal instructions itself.
+{
+  const realFetch = globalThis.fetch;
+  const headers = { get: () => null };
+
+  try {
+    // A key the user supplied must not be silently swapped for a throwaway.
+    {
+      const calls = [];
+      globalThis.fetch = async (url) => {
+        calls.push(String(url));
+        return { ok: false, status: 401, headers, text: async () => '', json: async () => ({}) };
+      };
+
+      const client = new OpenSeaClient({ apiKey: 'a-real-key-that-expired', maxRequests: 10 });
+      let err = null;
+      try {
+        await client.getDrops({ type: 'upcoming' });
+      } catch (e) {
+        err = e;
+      }
+
+      check('a 401 on a supplied key throws', err !== null);
+      eq('the error is coded KEY_REJECTED', err?.code, 'KEY_REJECTED');
+      check(
+        'the message blames expiry, which is the usual cause',
+        /expir/i.test(err.message),
+        err.message
+      );
+      check(
+        'the message gives the renewal command',
+        /npm run newkey/.test(err.message),
+        err.message
+      );
+      check(
+        'the message names the secret to update',
+        /OPENSEA_API_KEY/.test(err.message),
+        err.message
+      );
+      check(
+        'a supplied key is never silently replaced by minting a new one',
+        !calls.some((u) => u.includes('/auth/keys')),
+        calls.join(' ')
+      );
+    }
+
+    // With no supplied key, replacing our own throwaway is correct — but if that
+    // fails too, the user still needs the actionable error, not "HTTP 401".
+    {
+      const calls = [];
+      globalThis.fetch = async (url) => {
+        calls.push(String(url));
+        if (String(url).includes('/auth/keys')) {
+          return { ok: false, status: 429, headers, text: async () => '', json: async () => ({}) };
+        }
+        return { ok: false, status: 401, headers, text: async () => '', json: async () => ({}) };
+      };
+
+      const client = new OpenSeaClient({ maxRequests: 10 });
+      const warn = console.warn;
+      console.warn = () => {};
+      let err = null;
+      try {
+        await client.getDrops({ type: 'upcoming' });
+      } catch (e) {
+        err = e;
+      } finally {
+        console.warn = warn;
+      }
+
+      check('a run with no key at all still fails loudly', err !== null);
+      check(
+        'and it is attributed to the key, not to a generic HTTP status',
+        String(err?.code).startsWith('KEY_'),
+        String(err?.code)
+      );
+      check(
+        'the free-key endpoint was attempted when we had no key of our own',
+        calls.some((u) => u.includes('/auth/keys')),
+        calls.join(' ')
+      );
+    }
+  } finally {
+    globalThis.fetch = realFetch;
+  }
+}
+
 // --- Report --------------------------------------------------------------
 
 console.log(`\n${passed} checks passed.`);
