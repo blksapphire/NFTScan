@@ -109,6 +109,13 @@ it screens nothing. Set the secret. See [API keys](#api-keys).
 4. Happy? **Run workflow** again with dry run **unticked**. From then on it runs every 5
    minutes on its own.
 
+> **A green dry run does not mean you are configured.** Dry runs need no credentials, by
+> design — they exist so you can check scoring before wiring Telegram up. So a dispatch with
+> **dry run** ticked goes green on a repo with no secrets at all, and then the first *scheduled*
+> run fails, because a schedule has no dry-run input. Step 4 with dry run unticked is the step
+> that actually proves your secrets are set. If it fails, the run summary tells you which
+> secret is missing by name.
+
 To check your Telegram wiring specifically, run this locally instead (see [Local](#running-locally)):
 
 ```bash
@@ -320,7 +327,7 @@ Fill in `TELEGRAM_BOT_TOKEN` and `TELEGRAM_CHAT_ID`, then:
 npm run selftest
 ```
 
-166 offline checks covering scoring, wash-mint detection, HTML escaping, and state handling.
+183 offline checks covering scoring, wash-mint detection, HTML escaping, and state handling.
 No network, no key, no Telegram needed — run this first.
 
 ```bash
@@ -400,7 +407,7 @@ The Dockerfile uses Node 22 so it stays dependency-free.
 │  ├─ stream.js          # always-on websocket mode
 │  ├─ state.js           # dedupe, cursor, counters — the file that gets committed
 │  └─ util.js            # formatting and math helpers
-├─ test/selftest.js      # 166 offline checks
+├─ test/selftest.js      # 183 offline checks
 ├─ config.json           # your screener — edit this on github.com
 ├─ Dockerfile            # always-on mode
 └─ .env.example

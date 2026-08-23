@@ -14,7 +14,7 @@ import { tmpdir } from 'node:os';
 import { dirname, resolve, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-import { stripComments } from '../src/config.js';
+import { stripComments, loadConfig, ConfigError } from '../src/config.js';
 import { scoreCandidate, normalisePercentages } from '../src/score.js';
 import { MintTracker, parseTransferEvent } from '../src/mints.js';
 import { dueLeadBucket } from '../src/sources.js';
@@ -987,6 +987,136 @@ function goodCandidate(overrides = {}) {
     console.log = realLog;
     if (realEnv === undefined) delete process.env.GITHUB_ACTIONS;
     else process.env.GITHUB_ACTIONS = realEnv;
+  }
+}
+
+// --- Required secrets are diagnosed precisely -----------------------------
+
+// The first scheduled run failed here: a --dry-run dispatch had gone green on a
+// repo with no secrets, because dry runs do not need credentials. A schedule has
+// no `inputs.dry_run`, so DRY_RUN arrives empty, the checks switch on, and the
+// run dies. These lock in that the resulting message says which secret, why it
+// counts as missing, and where to put it.
+{
+  const SECRET_ENV = ['TELEGRAM_BOT_TOKEN', 'TELEGRAM_CHAT_ID', 'OPENSEA_API_KEY'];
+  const saved = {};
+  for (const k of [...SECRET_ENV, 'GITHUB_ACTIONS', 'MODE', 'DRY_RUN']) saved[k] = process.env[k];
+
+  /**
+   * Load config with an exact environment.
+   *
+   * `envFile: false` is load-bearing. `.env` only fills variables that are
+   * `undefined`, so on a machine that has one, the "variable is absent" case would
+   * be quietly satisfied by the developer's real credentials and this section
+   * would pass locally while the behaviour it claims to test was broken.
+   */
+  function loadWith(env) {
+    for (const k of [...SECRET_ENV, 'GITHUB_ACTIONS', 'MODE', 'DRY_RUN']) delete process.env[k];
+    Object.assign(process.env, env);
+    try {
+      return { cfg: loadConfig({ argv: [], envFile: false }), err: null };
+    } catch (err) {
+      return { cfg: null, err };
+    }
+  }
+
+  try {
+    // A real scheduled run on a repo with the secrets not added.
+    const sched = loadWith({
+      GITHUB_ACTIONS: 'true',
+      MODE: 'poll',
+      DRY_RUN: '',
+      TELEGRAM_BOT_TOKEN: '',
+      TELEGRAM_CHAT_ID: '',
+      OPENSEA_API_KEY: '',
+    });
+    check('a scheduled run with unset secrets is rejected', sched.err !== null);
+    check('the error is a ConfigError', sched.err instanceof ConfigError, sched.err?.name);
+    check(
+      'the title names both missing secrets so the run summary is self-explanatory',
+      Boolean(
+        sched.err.title?.includes('TELEGRAM_BOT_TOKEN') &&
+          sched.err.title?.includes('TELEGRAM_CHAT_ID')
+      ),
+      String(sched.err.title)
+    );
+    check(
+      'an empty secret inside Actions is reported as GitHub having none by that name',
+      /empty — GitHub has no repository secret by that name/.test(sched.err.message),
+      sched.err.message
+    );
+    check(
+      'the message says where to add them',
+      /Secrets and variables -> Actions/.test(sched.err.message)
+    );
+    check(
+      'the Secrets-vs-Variables tab trap is called out when the value arrived empty',
+      /not "Variables"/.test(sched.err.message)
+    );
+
+    // Same thing locally: no Actions wording, because none of it applies.
+    const local = loadWith({ MODE: 'poll', TELEGRAM_BOT_TOKEN: '', TELEGRAM_CHAT_ID: '' });
+    check('a local run with empty credentials is also rejected', local.err !== null);
+    check(
+      'local errors do not mention GitHub secrets',
+      !/repository secret|Variables/.test(local.err.message),
+      local.err.message
+    );
+
+    // An absent variable is a different fault: the workflow stopped passing it.
+    const absent = loadWith({ GITHUB_ACTIONS: 'true', MODE: 'poll' });
+    check(
+      'a variable absent inside Actions blames the workflow, not a missing secret',
+      /not passed by the workflow at all/.test(absent.err.message),
+      absent.err.message
+    );
+    check(
+      'and does not then blame the Variables tab, which cannot cause an absent variable',
+      !/not "Variables"/.test(absent.err.message),
+      absent.err.message
+    );
+
+    // Why the dry-run dispatch was green. This asymmetry is deliberate, so it
+    // needs a test saying so rather than being rediscovered as a surprise.
+    const dry = loadWith({
+      GITHUB_ACTIONS: 'true',
+      MODE: 'poll',
+      DRY_RUN: 'true',
+      TELEGRAM_BOT_TOKEN: '',
+      TELEGRAM_CHAT_ID: '',
+    });
+    eq('a dry run is allowed with no credentials at all', dry.err, null);
+
+    // Pasting into GitHub's secret box picks up trailing newlines very easily,
+    // and Telegram answers a whitespace-bearing token with a bare 404.
+    const padded = loadWith({
+      MODE: 'poll',
+      TELEGRAM_BOT_TOKEN: '  123456:ABCdef  \n',
+      TELEGRAM_CHAT_ID: '\t999\n',
+      OPENSEA_API_KEY: ' abc123\n',
+    });
+    eq('whitespace-padded secrets are accepted', padded.err, null);
+    eq('the token is trimmed', padded.cfg.telegramToken, '123456:ABCdef');
+    eq('the chat id is trimmed', padded.cfg.telegramChatId, '999');
+    eq('the OpenSea key is trimmed', padded.cfg.openseaApiKey, 'abc123');
+
+    // A whitespace-only secret is missing, not present.
+    const blank = loadWith({ MODE: 'poll', TELEGRAM_BOT_TOKEN: '   ', TELEGRAM_CHAT_ID: '1' });
+    check('a whitespace-only token counts as missing', blank.err !== null);
+
+    // Non-credential problems must not be mislabelled as a secrets problem.
+    const badMode = loadWith({
+      GITHUB_ACTIONS: 'true',
+      MODE: 'banana',
+      TELEGRAM_BOT_TOKEN: 'x',
+      TELEGRAM_CHAT_ID: '1',
+    });
+    eq('a bad MODE is titled as configuration, not secrets', badMode.err.title, 'bad configuration');
+  } finally {
+    for (const [k, v] of Object.entries(saved)) {
+      if (v === undefined) delete process.env[k];
+      else process.env[k] = v;
+    }
   }
 }
 

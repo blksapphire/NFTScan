@@ -55,12 +55,48 @@ function bool(value) {
 }
 
 /**
+ * A configuration problem, as opposed to a runtime one.
+ *
+ * `title` is what shows on a GitHub Actions run summary, so it has to make sense
+ * with no surrounding context.
+ */
+export class ConfigError extends Error {
+  constructor(message, title) {
+    super(message);
+    this.name = 'ConfigError';
+    this.title = title;
+  }
+}
+
+/**
+ * Distinguish "nobody mentioned this variable" from "something set it to empty".
+ *
+ * The difference is diagnostic gold on GitHub Actions. `env: FOO: ${{ secrets.FOO }}`
+ * always defines FOO — it just defines it as an empty string when no secret by
+ * that exact name exists. So `empty` inside Actions means the workflow asked for
+ * a secret and GitHub had none to give: the secret is missing, misspelled, or was
+ * added under the *Variables* tab instead of *Secrets*. `absent` would instead
+ * mean the workflow never passed it at all.
+ */
+function envState(name) {
+  const raw = process.env[name];
+  if (raw === undefined) return 'absent';
+  if (raw.trim() === '') return 'empty';
+  return 'set';
+}
+
+/**
  * @param {object} [options]
  * @param {object} [options.overrides] Runtime overrides from state (Telegram commands).
  * @param {string[]} [options.argv] Command-line flags.
+ * @param {boolean} [options.envFile] Read `.env`. Pass false for a hermetic load —
+ *   the self-test needs it, because `.env` only fills variables that are undefined,
+ *   so a developer's real credentials would quietly satisfy the very "is this
+ *   secret missing" checks being tested and the suite would pass on their machine
+ *   while failing in CI.
  */
-export function loadConfig({ overrides = {}, argv = [] } = {}) {
-  loadDotEnv(resolve(ROOT, '.env'));
+export function loadConfig({ overrides = {}, argv = [], envFile = true } = {}) {
+  if (envFile) loadDotEnv(resolve(ROOT, '.env'));
 
   const configPath = resolve(ROOT, 'config.json');
   if (!existsSync(configPath)) {
@@ -87,10 +123,12 @@ export function loadConfig({ overrides = {}, argv = [] } = {}) {
     minScore: clampNumber(overrides.minScore ?? file.minScore, 0, 100, 70),
     paused: overrides.paused ?? false,
 
-    // Secrets and run mode.
-    telegramToken: process.env.TELEGRAM_BOT_TOKEN || '',
-    telegramChatId: process.env.TELEGRAM_CHAT_ID || '',
-    openseaApiKey: process.env.OPENSEA_API_KEY || '',
+    // Secrets and run mode. Trimmed because pasting into GitHub's secret box (or
+    // a .env line) very easily carries a trailing newline or space, and Telegram
+    // rejects a token with whitespace in it with an unhelpful 404.
+    telegramToken: (process.env.TELEGRAM_BOT_TOKEN || '').trim(),
+    telegramChatId: (process.env.TELEGRAM_CHAT_ID || '').trim(),
+    openseaApiKey: (process.env.OPENSEA_API_KEY || '').trim(),
 
     mode: (flagValue('mode') || process.env.MODE || 'poll').toLowerCase(),
     stateFile: resolve(ROOT, process.env.STATE_FILE || './state.json'),
@@ -135,16 +173,68 @@ function validate(cfg) {
   }
 
   // Credentials are only required when we actually intend to send something.
+  // Note this is why a --dry-run workflow_dispatch can go green on a repo with no
+  // secrets at all, and then the first scheduled run fails: a schedule has no
+  // `inputs.dry_run`, so DRY_RUN arrives empty and these checks switch on.
+  const missingSecrets = [];
   if (!cfg.dryRun) {
     if (!cfg.telegramToken) {
-      problems.push('TELEGRAM_BOT_TOKEN is not set. Get one from @BotFather, or use --dry-run.');
+      missingSecrets.push('TELEGRAM_BOT_TOKEN');
+      problems.push(
+        `TELEGRAM_BOT_TOKEN is ${describeMissing('TELEGRAM_BOT_TOKEN')}. ` +
+          `Get one from @BotFather, or use --dry-run.`
+      );
     }
     if (!cfg.telegramChatId) {
-      problems.push('TELEGRAM_CHAT_ID is not set. Message @userinfobot to find yours, or use --dry-run.');
+      missingSecrets.push('TELEGRAM_CHAT_ID');
+      problems.push(
+        `TELEGRAM_CHAT_ID is ${describeMissing('TELEGRAM_CHAT_ID')}. ` +
+          `Message @userinfobot to find yours, or use --dry-run.`
+      );
     }
   }
 
   if (problems.length) {
-    throw new Error(`Configuration problems:\n  - ${problems.join('\n  - ')}`);
+    const message = `Configuration problems:\n  - ${problems.join('\n  - ')}`;
+
+    // Only the credentials case gets the friendlier title, because it is the one
+    // that is a setup step rather than a bug.
+    const title =
+      missingSecrets.length === problems.length
+        ? `missing repository secret${missingSecrets.length > 1 ? 's' : ''}: ${missingSecrets.join(', ')}`
+        : 'bad configuration';
+
+    let extra = '';
+    if (process.env.GITHUB_ACTIONS && missingSecrets.length) {
+      extra =
+        `\n\nAdd them under Settings -> Secrets and variables -> Actions -> ` +
+        `New repository secret.`;
+      // Only worth raising the Variables tab if the symptom actually matches it:
+      // an empty value. An absent variable means the workflow file changed instead.
+      if (missingSecrets.some((name) => envState(name) === 'empty')) {
+        extra +=
+          ` Use the "Secrets" tab, not "Variables" — a value stored as a variable ` +
+          `is not readable as \${{ secrets.NAME }} and arrives empty, which looks ` +
+          `identical to not having added it.`;
+      }
+    }
+
+    throw new ConfigError(message + extra, title);
   }
+}
+
+/**
+ * Why a required variable counts as missing, in the terms the user can act on.
+ * @param {string} name
+ */
+function describeMissing(name) {
+  const state = envState(name);
+  if (!process.env.GITHUB_ACTIONS) {
+    return state === 'empty' ? 'set but empty' : 'not set';
+  }
+  // Inside Actions the workflow always defines it, so `empty` is the normal
+  // symptom of a secret that does not exist under that name.
+  return state === 'absent'
+    ? 'not passed by the workflow at all (the env: block may have been edited)'
+    : 'empty — GitHub has no repository secret by that name';
 }

@@ -16,6 +16,7 @@ import { runStream } from './stream.js';
 import { Telegram, formatAlert } from './telegram.js';
 import { OpenSeaClient } from './opensea.js';
 import { scoreCandidate } from './score.js';
+import { ciAnnotate } from './util.js';
 
 /**
  * A realistic-looking candidate, used to check formatting and delivery.
@@ -96,5 +97,12 @@ async function main() {
 main().catch((err) => {
   console.error(`\nError: ${err.message}\n`);
   if (process.env.DEBUG) console.error(err.stack);
+
+  // A failing step's log is collapsed by default on GitHub, so an error only
+  // written to stderr is effectively invisible from the run summary. This puts it
+  // on the summary itself. `err.title` is set by ConfigError; anything else is a
+  // genuine crash and says so.
+  ciAnnotate('error', `Mint sniper: ${err.title || 'crashed'}`, err.message);
+
   process.exit(1);
 });
