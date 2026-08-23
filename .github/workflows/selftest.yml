@@ -16,6 +16,11 @@ on:
       - 'config.json'
       - 'package.json'
       - '.github/workflows/**'
+      # Listed so the "no real credentials in the template" check actually runs
+      # on the commit that would leak them. Filling in .env.example instead of
+      # .env is an easy slip, and on a public repo it is permanent.
+      - '.env.example'
+      - '.gitignore'
   pull_request:
   workflow_dispatch:
 

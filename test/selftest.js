@@ -917,6 +917,48 @@ function goodCandidate(overrides = {}) {
   }
 }
 
+// --- .env.example must never contain real credentials --------------------
+{
+  // `.env.example` is TRACKED; `.env` is not. They differ by one word, sit next
+  // to each other, and hold the same keys — so filling in the wrong one is an
+  // easy mistake with a permanent consequence on a public repo. This check makes
+  // that mistake fail the build instead of leaking a live token.
+  const examplePath = resolve(ROOT, '.env.example');
+  const example = readFileSync(examplePath, 'utf8');
+
+  /** Every KEY=VALUE pair, ignoring comments. */
+  const assignments = example
+    .split('\n')
+    .map((line) => line.trim())
+    .filter((line) => line && !line.startsWith('#'))
+    .map((line) => {
+      const i = line.indexOf('=');
+      return i === -1 ? null : { key: line.slice(0, i).trim(), value: line.slice(i + 1).trim() };
+    })
+    .filter(Boolean);
+
+  check('.env.example defines the credential keys', assignments.length >= 3, `${assignments.length} found`);
+
+  const mustBeBlank = ['TELEGRAM_BOT_TOKEN', 'TELEGRAM_CHAT_ID', 'OPENSEA_API_KEY'];
+  for (const key of mustBeBlank) {
+    const entry = assignments.find((a) => a.key === key);
+    check(`.env.example leaves ${key} blank`, entry !== undefined && entry.value === '',
+      entry === undefined ? 'key missing entirely' : `has a value (${entry.value.length} chars)`);
+  }
+
+  // Shape checks, in case a future key is added and forgotten above.
+  check('.env.example holds no Telegram-token-shaped string',
+    !/\d{6,}:[A-Za-z0-9_-]{30,}/.test(example.replace(/^#.*$/gm, '')),
+    'a real bot token appears to be filled in');
+  check('.env.example holds no long opaque secret',
+    !assignments.some((a) => /^[A-Za-z0-9_-]{24,}$/.test(a.value)),
+    'a value looks like a real key');
+
+  // The comment warning users off committing it must survive edits.
+  check('.env.example still warns against committing a real .env',
+    /never commit/i.test(example), 'the warning comment was removed');
+}
+
 // --- Report --------------------------------------------------------------
 
 console.log(`\n${passed} checks passed.`);
