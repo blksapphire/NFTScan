@@ -14,7 +14,7 @@
  * one left off.
  */
 
-import { sleep } from './util.js';
+import { sleep, describeFetchError } from './util.js';
 
 const BASE = 'https://api.opensea.io';
 const MAX_429_WAIT_SECONDS = 25;
@@ -74,10 +74,12 @@ export class OpenSeaClient {
       });
     } catch (err) {
       // Unwrapped, this surfaces as Node's bare "fetch failed", which tells the
-      // user nothing about what to do next.
+      // user nothing about what to do next. The real reason lives in err.cause.
+      const { code, detail, hint } = describeFetchError(err);
       throw new OpenSeaError(
-        `Could not reach OpenSea to mint an API key (${err.message}). ` +
-          `Check your network, or set OPENSEA_API_KEY from opensea.io -> Settings -> Developer.`,
+        `Could not reach OpenSea to mint an API key [${code}: ${detail}]. ` +
+          (hint ? `${hint} ` : '') +
+          `Or set OPENSEA_API_KEY from opensea.io -> Settings -> Developer.`,
         'KEY_FETCH_FAILED'
       );
     }
@@ -203,7 +205,11 @@ export class OpenSeaClient {
           continue;
         }
         if (optional) return null;
-        throw new OpenSeaError(`Network error calling ${path}: ${err.message}`, 'NETWORK');
+        const { code, detail, hint } = describeFetchError(err);
+        throw new OpenSeaError(
+          `Network error calling ${path} [${code}: ${detail}]${hint ? `. ${hint}` : ''}`,
+          'NETWORK'
+        );
       }
 
       this.absorbRateLimitHeaders(res);

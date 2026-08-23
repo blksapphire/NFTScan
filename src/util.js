@@ -96,3 +96,36 @@ export function shortAddress(address) {
   if (a.length < 12) return a || 'unknown';
   return `${a.slice(0, 6)}...${a.slice(-4)}`;
 }
+
+/**
+ * Turn a `fetch` rejection into something a person can act on.
+ *
+ * Node's fetch throws a flat `TypeError: fetch failed` and buries the real
+ * reason — DNS, TLS, a reset, a refused connection — in `err.cause`. Reporting
+ * only `err.message` therefore makes every network problem look identical, which
+ * is useless when you are trying to work out why the bot went quiet.
+ *
+ * @param {unknown} err
+ * @returns {{ code: string, detail: string, hint: string }}
+ */
+export function describeFetchError(err) {
+  const cause = /** @type {any} */ (err)?.cause;
+  const code = String(cause?.code ?? cause?.errno ?? '') || 'UNKNOWN';
+  const detail = String(cause?.message ?? /** @type {any} */ (err)?.message ?? 'no detail');
+
+  const hints = {
+    ENOTFOUND: 'DNS could not resolve the host. Check your DNS or VPN.',
+    EAI_AGAIN: 'DNS lookup timed out — usually a flaky resolver or VPN.',
+    ECONNREFUSED: 'The host refused the connection.',
+    ECONNRESET: 'The connection was reset mid-request. Often a firewall, proxy, or bot filter.',
+    ETIMEDOUT: 'The connection timed out. A proxy or firewall may be dropping it silently.',
+    UND_ERR_CONNECT_TIMEOUT: 'Timed out connecting. Common when IPv6 is advertised but broken.',
+    UND_ERR_SOCKET: 'The socket closed unexpectedly, often a TLS or proxy interception issue.',
+    CERT_HAS_EXPIRED: 'TLS certificate rejected — check the system clock and any corporate proxy.',
+    UNABLE_TO_VERIFY_LEAF_SIGNATURE:
+      'TLS chain could not be verified, which usually means a proxy is intercepting HTTPS.',
+    EPROTO: 'TLS handshake failed. A proxy may be intercepting HTTPS.',
+  };
+
+  return { code, detail, hint: hints[code] ?? '' };
+}

@@ -16,6 +16,7 @@
     "test:telegram": "node src/index.js --test-telegram",
     "newkey": "node src/index.js --new-key",
     "selftest": "node test/selftest.js",
+    "diagnose": "node test/diagnose.js",
     "check": "node --check src/index.js && node --check src/poll.js && node --check src/stream.js"
   },
   "keywords": [
