@@ -83,6 +83,12 @@ jobs:
           set -euo pipefail
           [ -f state.json ] || { echo "No state.json to save."; exit 0; }
 
+          # commit-tree needs an author identity just like `git commit` does, and
+          # Actions runners ship without one — without this the step dies with
+          # "empty ident name ... not allowed" (exit 128).
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+
           # Written with git plumbing rather than checkout/commit/push so we
           # never touch the working tree, and so the branch is created on first
           # run without any orphan-branch setup.
