@@ -92,10 +92,13 @@ In your repo: **Settings → Secrets and variables → Actions → New repositor
 |---|---|---|
 | `TELEGRAM_BOT_TOKEN` | The token from BotFather | Yes |
 | `TELEGRAM_CHAT_ID` | Your numeric ID from @userinfobot | Yes |
-| `OPENSEA_API_KEY` | Leave this out for now | No |
+| `OPENSEA_API_KEY` | A key from opensea.io → Settings → Developer | **Yes, on Actions** |
 
-There is no `OPENSEA_API_KEY` step because the bot mints itself a free key at runtime. See
-[API keys](#api-keys) for why you will probably want a permanent one later.
+The bot *can* mint itself a free key at runtime, and that works fine on your own machine. It
+does **not** work on GitHub Actions: `POST /api/v2/auth/keys` is rate-limited per IP address,
+CI runners share their IPs with an enormous number of other users, and the quota is normally
+already spent by a stranger before your job starts. You get `HTTP 429`, the run goes green, and
+it screens nothing. Set the secret. See [API keys](#api-keys).
 
 ### 4. Turn it on
 
@@ -264,7 +267,8 @@ annoyed at it in a week.
 - **No true real-time.** Live-mint detection in poll mode sees a mint after the fact.
 - **Public repo means your `bot-state` branch is readable.** It holds only dedupe keys, a
   Telegram message cursor, and counters — no credentials, and there is a test asserting that.
-- **Free OpenSea keys expire in 7 days.** Handled automatically, but see below.
+- **Free OpenSea keys cannot be minted from CI.** That endpoint is rate-limited per IP and
+  GitHub's runner IPs are shared, so on Actions you must set `OPENSEA_API_KEY`. See below.
 - **Public-repo schedules get auto-disabled after 60 days of inactivity.** A monthly keepalive
   workflow is included. If GitHub emails you anyway, open Actions and click *Enable workflow*.
 - **This screens metrics, not honesty.** A high score means the on-chain shape looks healthy.
@@ -274,16 +278,31 @@ annoyed at it in a week.
 
 ## API keys
 
-By default the bot calls OpenSea's public endpoint to mint itself a free key at runtime. That
-works with no signup, but those keys **expire after about 7 days** and are rate-limited to
-roughly 600 reads/hour.
+**On GitHub Actions you need a real key.** Set the `OPENSEA_API_KEY` secret to one from
+**opensea.io → Settings → Developer**. It is the only thing the bot cannot arrange for itself.
 
-For something more durable, get a permanent key from
-**opensea.io → Settings → Developer**, then add it as the `OPENSEA_API_KEY` secret. The bot
-uses it if present and falls back to auto-minting if it is rejected.
+Why the auto-minting fallback does not save you here: `POST /api/v2/auth/keys` hands out a free
+key with no signup, but it is rate-limited **per IP address**. GitHub's runners come from a
+shared pool, so by the time your job starts the quota for that IP has usually been spent by
+somebody else's job. You get `HTTP 429`. Waiting will not help and neither will a slower cron —
+it was never your quota to begin with. When this happens the run still exits 0 (a failure every
+5 minutes would bury your inbox), so it reports itself as a **red annotation** on the run
+instead: *"Mint sniper: no OpenSea API key"*.
 
-The request budget in `config.json` (`budget.maxRequestsPerRun: 40`) is set so 12 runs/hour
-stays under the free 600/hour ceiling. Raise the cron interval before raising that number.
+Auto-minting is still genuinely useful on your own machine — one IP, your quota — which is why
+`npm run dry` works with nothing configured. Those keys **expire after about 7 days**, and each
+run mints a fresh one, so it is a convenience for testing rather than a way to run in
+production.
+
+Either kind of key is rate-limited to roughly 600 reads/hour. The request budget in
+`config.json` (`budget.maxRequestsPerRun: 40`) is set so 12 runs/hour stays under that ceiling.
+Raise the cron interval before raising that number.
+
+### If that Developer page is gated
+
+If opensea.io does not just hand you a key — some accounts see an application form — say so and
+we will point the collectors at a public indexer such as Reservoir, which needs no key. The
+detection and scoring layers do not care where the collection data comes from.
 
 ---
 
@@ -301,7 +320,7 @@ Fill in `TELEGRAM_BOT_TOKEN` and `TELEGRAM_CHAT_ID`, then:
 npm run selftest
 ```
 
-161 offline checks covering scoring, wash-mint detection, HTML escaping, and state handling.
+166 offline checks covering scoring, wash-mint detection, HTML escaping, and state handling.
 No network, no key, no Telegram needed — run this first.
 
 ```bash
@@ -381,7 +400,7 @@ The Dockerfile uses Node 22 so it stays dependency-free.
 │  ├─ stream.js          # always-on websocket mode
 │  ├─ state.js           # dedupe, cursor, counters — the file that gets committed
 │  └─ util.js            # formatting and math helpers
-├─ test/selftest.js      # 161 offline checks
+├─ test/selftest.js      # 166 offline checks
 ├─ config.json           # your screener — edit this on github.com
 ├─ Dockerfile            # always-on mode
 └─ .env.example

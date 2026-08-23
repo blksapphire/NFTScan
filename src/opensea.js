@@ -85,6 +85,22 @@ export class OpenSeaClient {
     }
 
     if (!res.ok) {
+      // 429 here is special and worth its own message. This endpoint is rate
+      // limited per IP, and CI runners share their IPs with a very large number
+      // of other users — so on GitHub Actions the quota is usually already spent
+      // by a stranger before the job starts. Retrying or slowing the cron cannot
+      // fix it, because it was never our quota. A real key is the only way out.
+      if (res.status === 429) {
+        throw new OpenSeaError(
+          'Could not mint a free OpenSea key: rate limited (HTTP 429). ' +
+            'This endpoint is limited per IP address, and CI runners share IPs with many ' +
+            'other users, so the free-key quota is normally already exhausted there. ' +
+            'Waiting will not help. Set the OPENSEA_API_KEY secret to a key from ' +
+            'opensea.io -> Settings -> Developer.',
+          'KEY_RATE_LIMITED'
+        );
+      }
+
       throw new OpenSeaError(
         `Could not mint a free OpenSea key (HTTP ${res.status}). ` +
           `Set OPENSEA_API_KEY manually from opensea.io -> Settings -> Developer.`,

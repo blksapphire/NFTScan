@@ -129,3 +129,27 @@ export function describeFetchError(err) {
 
   return { code, detail, hint: hints[code] ?? '' };
 }
+
+/**
+ * Emit a GitHub Actions annotation, so a problem is visible on the run summary
+ * rather than buried in a step log nobody expands.
+ *
+ * A poll run deliberately exits 0 when the API is unreachable, so a transient
+ * blip does not send the owner a failure email every five minutes. The cost of
+ * that choice is that "worked, found nothing" and "never reached OpenSea at all"
+ * both render as a green check. An annotation restores the distinction without
+ * reintroducing the email spam.
+ *
+ * No-op outside Actions, so local runs stay clean.
+ *
+ * @param {'notice'|'warning'|'error'} level
+ * @param {string} title
+ * @param {string} message
+ */
+export function ciAnnotate(level, title, message) {
+  if (!process.env.GITHUB_ACTIONS) return;
+  // Annotation values are delimited by newlines, so they must be encoded.
+  const esc = (s) =>
+    String(s).replace(/%/g, '%25').replace(/\r/g, '%0D').replace(/\n/g, '%0A');
+  console.log(`::${level} title=${esc(title)}::${esc(message)}`);
+}

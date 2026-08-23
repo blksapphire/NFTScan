@@ -19,6 +19,7 @@ import {
   enrich,
 } from './sources.js';
 import { markAlerted, recordRecent, pruneState, saveState } from './state.js';
+import { ciAnnotate } from './util.js';
 
 /** Contract address if we have one, otherwise the slug. Never undefined. */
 function dedupeIdFor(candidate) {
@@ -40,6 +41,7 @@ const RUN_ENDING_CODES = [
   'EXHAUSTED',
   'RATE_LIMITED',
   'KEY_FETCH_FAILED',
+  'KEY_RATE_LIMITED',
   'KEY_SHAPE_UNEXPECTED',
 ];
 
@@ -80,6 +82,12 @@ export async function runPoll(cfg, state) {
   const candidates = [];
   const sources = cfg.sources || {};
 
+  // Tracked so a run where nothing worked cannot pass for a run that found nothing.
+  let attempted = 0;
+  let succeeded = 0;
+  /** @type {{label: string, message: string, code?: string}[]} */
+  const failures = [];
+
   const collectors = [
     ['upcoming drops', sources.upcomingDrops, () => collectUpcoming(client, cfg, state, nowMs)],
     ['recently minted', sources.recentlyMinted, () => collectLive(client, cfg, state, nowMs)],
@@ -88,11 +96,14 @@ export async function runPoll(cfg, state) {
 
   for (const [label, enabled, run] of collectors) {
     if (!enabled) continue;
+    attempted++;
     try {
       const found = await run();
+      succeeded++;
       console.log(`[poll] ${label}: ${found.length} candidate(s) past the cheap filters`);
       candidates.push(...found);
     } catch (err) {
+      failures.push({ label, message: err.message, code: err.code });
       if (err instanceof OpenSeaError && RUN_ENDING_CODES.includes(err.code)) {
         console.warn(`[poll] ${label}: ${err.message}`);
         break; // Nothing else can succeed this run; work with what we have.
@@ -101,10 +112,40 @@ export async function runPoll(cfg, state) {
     }
   }
 
+  // Every enabled source failed, so this run saw nothing at all — which is very
+  // different from "looked, found nothing" and must not read as success.
+  if (attempted > 0 && succeeded === 0) {
+    const first = failures[0];
+    const keyProblem = failures.some((f) => String(f.code || '').startsWith('KEY_'));
+
+    console.error(
+      `[poll] NO SOURCE SUCCEEDED — this run screened nothing. ` +
+        (RUN_ENDING_CODES.includes(String(first.code))
+          ? `Stopped after a fatal error on "${first.label}"; the remaining sources ` +
+            `would have hit the same wall.`
+          : `${failures.length}/${attempted} source(s) failed.`)
+    );
+    ciAnnotate(
+      'error',
+      keyProblem ? 'Mint sniper: no OpenSea API key' : 'Mint sniper: OpenSea unreachable',
+      keyProblem
+        ? `This run screened nothing because it has no usable OpenSea API key.\n` +
+            `${first.message}\n` +
+            `Fix: add a repository secret named OPENSEA_API_KEY (Settings -> Secrets and ` +
+            `variables -> Actions) using a key from opensea.io -> Settings -> Developer.`
+        : `This run screened nothing — all ${attempted} source(s) failed.\n${first.message}\n` +
+            `If this clears on the next run it was a transient blip and can be ignored.`
+    );
+  }
+
   if (candidates.length === 0) {
-    console.log('[poll] nothing new to look at.');
+    console.log(
+      succeeded === 0
+        ? '[poll] no candidates, because no source could be read. See the error above.'
+        : `[poll] ${succeeded}/${attempted} source(s) read fine; nothing new to look at.`
+    );
     finish(cfg, state);
-    return { alerts: 0, paused: false };
+    return { alerts: 0, paused: false, sourcesOk: succeeded, sourcesAttempted: attempted };
   }
 
   // 3. Enrich in priority order, within whatever budget is left. Each candidate

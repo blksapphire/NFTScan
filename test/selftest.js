@@ -28,7 +28,7 @@ import {
   loadState,
   saveState,
 } from '../src/state.js';
-import { weiToEth, isMintTransfer, ramp, ZERO_ADDRESS } from '../src/util.js';
+import { weiToEth, isMintTransfer, ramp, ZERO_ADDRESS, ciAnnotate } from '../src/util.js';
 import { OpenSeaClient, OpenSeaError } from '../src/opensea.js';
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
@@ -957,6 +957,37 @@ function goodCandidate(overrides = {}) {
   // The comment warning users off committing it must survive edits.
   check('.env.example still warns against committing a real .env',
     /never commit/i.test(example), 'the warning comment was removed');
+}
+
+// --- CI annotations ------------------------------------------------------
+{
+  const realLog = console.log;
+  const realEnv = process.env.GITHUB_ACTIONS;
+  const lines = [];
+  console.log = (...a) => lines.push(a.join(' '));
+  try {
+    delete process.env.GITHUB_ACTIONS;
+    ciAnnotate('error', 'T', 'should not appear');
+    eq('ciAnnotate is silent outside GitHub Actions', lines.length, 0);
+
+    process.env.GITHUB_ACTIONS = 'true';
+    ciAnnotate('error', 'Mint sniper', 'line one\nline two');
+    eq('ciAnnotate emits exactly one line inside Actions', lines.length, 1);
+    check('the annotation uses the ::error title=…:: form',
+      lines[0].startsWith('::error title=Mint sniper::'), lines[0]);
+    // A literal newline would terminate the annotation early and lose the rest.
+    check('newlines are encoded as %0A, not emitted raw',
+      lines[0].includes('%0A') && !lines[0].slice(2).includes('\n'), lines[0]);
+
+    lines.length = 0;
+    ciAnnotate('warning', 'pct', '50% done');
+    check('percent signs are encoded first, so %0A cannot be corrupted',
+      lines[0].includes('50%25 done'), lines[0]);
+  } finally {
+    console.log = realLog;
+    if (realEnv === undefined) delete process.env.GITHUB_ACTIONS;
+    else process.env.GITHUB_ACTIONS = realEnv;
+  }
 }
 
 // --- Report --------------------------------------------------------------

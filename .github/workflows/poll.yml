@@ -69,7 +69,10 @@ jobs:
         env:
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
-          # Optional. Left unset, the bot mints itself a free key each run.
+          # Required here. The bot can mint itself a free key locally, but that
+          # endpoint is rate limited per IP and runner IPs are shared, so on
+          # Actions it answers 429. Without this secret the run screens nothing
+          # and says so via a ::error:: annotation.
           OPENSEA_API_KEY: ${{ secrets.OPENSEA_API_KEY }}
           MODE: poll
           DRY_RUN: ${{ inputs.dry_run }}
