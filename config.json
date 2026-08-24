@@ -76,8 +76,8 @@
     "dedupeDays": 30
   },
   "budget": {
-    "maxRequestsPerRun": 40,
-    "reserveRequests": 8,
+    "maxRequestsPerRun": 50,
+    "reserveRequests": 5,
     "targetRatePerMinute": 50
   }
 }
