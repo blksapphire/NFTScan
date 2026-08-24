@@ -11,13 +11,22 @@ const EMPTY = {
   stats: { runs: 0, alertsSent: 0, lastRunAt: null, lastAlertAt: null },
   recent: [],
   apiKeyExpiresAt: null,
-  research: { version: 1, alerts: [], snapshots: [] },
-  lastScan: { at: null, discovered: [], scored: [], meta: {} },
+  research: { version: 1, alerts: [], snapshots: [], lastScan: { at: null, discovered: [], scored: [], meta: {} } },
 };
+
+function attachLastScanAlias(target, scan) {
+  const value = scan ?? EMPTY.research.lastScan;
+  Object.defineProperty(target, 'lastScan', {
+    enumerable: false,
+    configurable: true,
+    get() { return this.research.lastScan; },
+    set(next) { this.research.lastScan = next ?? value; },
+  });
+}
 
 /** Normalize both fresh state and legacy v1 state before any caller touches it. */
 export function normalizeState(parsed = {}) {
-  return {
+  const normalized = {
     ...structuredClone(EMPTY),
     ...parsed,
     version: Math.max(2, Number(parsed.version) || 1),
@@ -30,24 +39,27 @@ export function normalizeState(parsed = {}) {
       ...(parsed.research ?? {}),
       alerts: Array.isArray(parsed.research?.alerts) ? parsed.research.alerts : [],
       snapshots: Array.isArray(parsed.research?.snapshots) ? parsed.research.snapshots : [],
-    },
-    lastScan: {
-      ...EMPTY.lastScan,
-      ...(parsed.lastScan ?? {}),
-      discovered: Array.isArray(parsed.lastScan?.discovered) ? parsed.lastScan.discovered : [],
-      scored: Array.isArray(parsed.lastScan?.scored) ? parsed.lastScan.scored : [],
-      meta: parsed.lastScan?.meta ?? {},
+      lastScan: {
+        ...EMPTY.research.lastScan,
+        ...(parsed.research?.lastScan ?? parsed.lastScan ?? {}),
+        discovered: Array.isArray(parsed.research?.lastScan?.discovered ?? parsed.lastScan?.discovered) ? (parsed.research?.lastScan?.discovered ?? parsed.lastScan.discovered) : [],
+        scored: Array.isArray(parsed.research?.lastScan?.scored ?? parsed.lastScan?.scored) ? (parsed.research?.lastScan?.scored ?? parsed.lastScan.scored) : [],
+        meta: (parsed.research?.lastScan?.meta ?? parsed.lastScan?.meta) ?? {},
+      },
     },
   };
+  delete normalized.lastScan;
+  attachLastScanAlias(normalized);
+  return normalized;
 }
 
 export function loadState(file) {
-  if (!existsSync(file)) return structuredClone(EMPTY);
+  if (!existsSync(file)) return normalizeState();
   try {
     return normalizeState(JSON.parse(readFileSync(file, 'utf8')));
   } catch (err) {
     console.warn(`[state] ${file} unreadable (${err.message}); starting fresh.`);
-    return structuredClone(EMPTY);
+    return normalizeState();
   }
 }
 
@@ -63,6 +75,7 @@ export function saveState(file, state) {
 export function pruneState(state, dedupeDays, now = Date.now(), researchRetentionDays = 90) {
   const normalized = normalizeState(state);
   Object.assign(state, normalized);
+  attachLastScanAlias(state);
 
   const cutoff = now - Number(dedupeDays) * 86400000;
   let removed = 0;
