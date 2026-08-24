@@ -7,7 +7,7 @@
  * credentials belong.
  */
 
-import { copyFileSync, existsSync } from 'node:fs';
+import { copyFileSync, existsSync, chmodSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { ROOT } from './config.js';
 
@@ -24,7 +24,13 @@ if (!existsSync(examplePath)) {
   process.exit(1);
 }
 
-copyFileSync(examplePath, envPath, { mode: 0o600 });
+copyFileSync(examplePath, envPath);
+try {
+  chmodSync(envPath, 0o600);
+} catch (err) {
+  console.warn(`[setup] Could not restrict .env permissions: ${err.message}`);
+}
+
 console.log('Created .env from .env.example.');
 console.log('Open .env and fill in TELEGRAM_BOT_TOKEN, TELEGRAM_CHAT_ID, and OPENSEA_API_KEY.');
 console.log('The .env file is gitignored and must never be committed.');
