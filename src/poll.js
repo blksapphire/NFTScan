@@ -63,61 +63,99 @@ export async function runPoll(cfg, state) {
     return { alerts: 0, paused: false, sourcesOk: succeeded, sourcesAttempted: attempted };
   }
 
-  // Source order is deliberate, but we now enrich broadly before paying for
-  // expensive holder analysis. This prevents the first few candidates from
-  // consuming the whole run budget while the remaining candidates are never scored.
-  candidates.sort((a, b) => (KIND_PRIORITY[a.kind] ?? 9) - (KIND_PRIORITY[b.kind] ?? 9));
+  // Live mints are the most actionable signal. They get the first share of the
+  // budget, followed by upcoming drops and new collections.
+  candidates.sort((a, b) => {
+    const rank = (KIND_PRIORITY[a.kind] ?? 9) - (KIND_PRIORITY[b.kind] ?? 9);
+    if (rank) return rank;
+    return (Number(b.mintPriceEth) || 0) - (Number(a.mintPriceEth) || 0);
+  });
 
-  const scored = [];
-  const explainRows = [];
+  const stageOneLimit = Number(cfg.budget?.stageOneCandidates) || 22;
   const stageOne = [];
-
-  // Stage 1: collection detail only, one request per candidate.
-  for (const candidate of candidates) {
+  for (const candidate of candidates.slice(0, stageOneLimit)) {
     if (client.requestsUsed + 1 + reserve > client.maxRequests) break;
     try {
       await enrich(client, candidate, { withHolders: false });
-      const result = scoreCandidate(candidate, cfg, nowMs);
-      stageOne.push({ candidate, result });
+      stageOne.push({ candidate, result: scoreCandidate(candidate, cfg, nowMs) });
     } catch (err) {
       if (err instanceof OpenSeaError && RUN_ENDING_CODES.includes(err.code)) break;
       if (cfg.debug) console.warn(`[poll] stage-1 enrichment warning for ${candidate.name}: ${err.message}`);
     }
   }
 
-  // Rank using cheap data, then spend remaining calls on holders for the most
-  // promising non-upcoming candidates.
-  stageOne.sort((a, b) => (b.result.score - a.result.score) || ((a.result.riskScore || 0) - (b.result.riskScore || 0)));
-  const holderSlots = Math.max(0, client.maxRequests - client.requestsUsed - reserve);
-  let holderUsed = 0;
+  // Poll-mode demand reconstruction. OpenSea exposes mint events by collection,
+  // so one additional request can provide the same core demand features that the
+  // websocket MintTracker uses: unique minters, velocity and acceleration.
+  const eventLimit = Number(cfg.budget?.mintEventCandidates) || 16;
+  const eventWindowMinutes = Number(cfg.budget?.mintEventWindowMinutes) || Number(cfg.velocity?.windowMinutes) || 10;
+  const afterSeconds = Math.floor((nowMs - eventWindowMinutes * 60000) / 1000);
+  const liveCandidates = stageOne
+    .filter(({ candidate }) => candidate.kind === 'live' && candidate.slug)
+    .sort((a, b) => b.result.score - a.result.score)
+    .slice(0, eventLimit);
+  let eventEnriched = 0;
 
-  for (const entry of stageOne) {
-    const { candidate } = entry;
-    if (candidate.kind !== 'upcoming' && holderUsed < holderSlots) {
-      try {
-        await enrich(client, candidate, { withHolders: true });
-        holderUsed++;
-      } catch (err) {
-        if (err instanceof OpenSeaError && RUN_ENDING_CODES.includes(err.code)) break;
-        if (cfg.debug) console.warn(`[poll] holder enrichment warning for ${candidate.name}: ${err.message}`);
+  for (const { candidate } of liveCandidates) {
+    if (client.requestsUsed + 1 + reserve > client.maxRequests) break;
+    try {
+      const events = await client.getMintEventsByCollection(candidate.slug, { after: afterSeconds, limit: 200 });
+      const stats = buildMintStats(events, nowMs, eventWindowMinutes);
+      if (stats.totalMints > 0) {
+        candidate.totalMints = stats.totalMints;
+        candidate.uniqueMinters = stats.uniqueMinters;
+        candidate.mintsPerMinute = stats.mintsPerMinute;
+        candidate.previousMintsPerMinute = stats.previousMintsPerMinute;
+        candidate.mintAcceleration = stats.acceleration;
+        eventEnriched++;
       }
+    } catch (err) {
+      if (err instanceof OpenSeaError && RUN_ENDING_CODES.includes(err.code)) break;
+      if (cfg.debug) console.warn(`[poll] mint-event enrichment warning for ${candidate.name}: ${err.message}`);
     }
+  }
 
+  // Re-score after demand signals, then use the remaining budget for holder
+  // concentration on the strongest candidates.
+  for (const entry of stageOne) entry.result = scoreCandidate(entry.candidate, cfg, nowMs);
+  stageOne.sort((a, b) => b.result.score - a.result.score);
+
+  const holderLimit = Number(cfg.budget?.holderCandidates) || 4;
+  const holderCandidates = stageOne
+    .filter(({ candidate }) => candidate.kind !== 'upcoming' && candidate.slug)
+    .slice(0, holderLimit);
+  let holderEnriched = 0;
+
+  for (const { candidate } of holderCandidates) {
+    if (client.requestsUsed + 1 + reserve > client.maxRequests) break;
+    try {
+      await enrich(client, candidate, { withHolders: true });
+      if (candidate.topHolders?.length) holderEnriched++;
+    } catch (err) {
+      if (err instanceof OpenSeaError && RUN_ENDING_CODES.includes(err.code)) break;
+      if (cfg.debug) console.warn(`[poll] holder enrichment warning for ${candidate.name}: ${err.message}`);
+    }
+  }
+
+  const scored = [];
+  const explainRows = [];
+  let scoreQualified = 0;
+  let coverageSuppressed = 0;
+  let riskFlagged = 0;
+  for (const { candidate } of stageOne) {
     const result = scoreCandidate(candidate, cfg, nowMs);
     explainRows.push({ candidate, result });
+    if ((result.riskScore || 0) >= 40) riskFlagged++;
     if (result.rejected || result.score < minScore) continue;
+    scoreQualified++;
+    if ((result.available?.length || 0) < minSignalCoverage) { coverageSuppressed++; continue; }
     scored.push({ candidate, result });
   }
 
-  if (cfg.explain) printExplainReport(explainRows, minScore, minSignalCoverage, candidates.length, client.requestsUsed);
+  if (cfg.explain) printExplainReport(explainRows, { threshold: minScore, minSignalCoverage, totalCandidates: candidates.length, apiRequests: client.requestsUsed, eventEnriched, holderEnriched, scoreQualified, coverageSuppressed, riskFlagged });
 
   scored.sort((a, b) => (b.result.score - a.result.score) || ((a.result.riskScore || 0) - (b.result.riskScore || 0)));
-  const eligible = scored.filter(({ result }) => (result.available?.length || 0) >= minSignalCoverage);
-  const coverageSuppressed = scored.length - eligible.length;
-  if (coverageSuppressed > 0) {
-    console.log(`[poll] ${coverageSuppressed} score-qualified candidate(s) suppressed for insufficient signal coverage (<${minSignalCoverage}/8).`);
-  }
-  const toSend = eligible.slice(0, Number(cfg.maxAlertsPerRun) || 6);
+  const toSend = scored.slice(0, Number(cfg.maxAlertsPerRun) || 6);
   console.log(`[poll] ${toSend.length} passed the screener and coverage gate; sending ${toSend.length}.`);
 
   let sent = 0;
@@ -129,9 +167,7 @@ export async function runPoll(cfg, state) {
       if (cfg.research?.enabled !== false) recordAlert(state, candidate, result, nowMs, cfg);
       sent++;
       state.stats.lastAlertAt = new Date().toISOString();
-    } catch (err) {
-      console.error(`[poll] failed to send alert for ${candidate.name}: ${err.message}`);
-    }
+    } catch (err) { console.error(`[poll] failed to send alert for ${candidate.name}: ${err.message}`); }
   }
 
   state.stats.alertsSent = (state.stats.alertsSent || 0) + sent;
@@ -140,21 +176,45 @@ export async function runPoll(cfg, state) {
   return { alerts: sent, paused: false };
 }
 
-function printExplainReport(rows, threshold, minSignalCoverage, totalCandidates, apiRequests) {
+function buildMintStats(events, nowMs, windowMinutes) {
+  const normalized = [];
+  for (const event of events || []) {
+    const at = Date.parse(event?.event_timestamp ?? event?.timestamp ?? event?.occurred_at ?? '');
+    if (!Number.isFinite(at)) continue;
+    const to = String(event?.to_address ?? event?.to_account?.address ?? event?.recipient?.address ?? event?.nft?.owner?.address ?? event?.nft?.owner ?? '').toLowerCase();
+    if (!to) continue;
+    normalized.push({ at, to });
+  }
+  const cutoff = nowMs - windowMinutes * 60000;
+  const live = normalized.filter((e) => e.at >= cutoff && e.at <= nowMs).sort((a, b) => a.at - b.at);
+  if (!live.length) return { totalMints: 0, uniqueMinters: 0, mintsPerMinute: 0, previousMintsPerMinute: 0, acceleration: 0 };
+  const elapsed = Math.max(0.5, (nowMs - live[0].at) / 60000);
+  const current = live.length / elapsed;
+  const midpoint = cutoff + windowMinutes * 30000;
+  const oldEvents = live.filter((e) => e.at < midpoint);
+  const newEvents = live.filter((e) => e.at >= midpoint);
+  const oldVelocity = oldEvents.length ? oldEvents.length / Math.max(0.5, (midpoint - oldEvents[0].at) / 60000) : current;
+  const newVelocity = newEvents.length ? newEvents.length / Math.max(0.5, (nowMs - newEvents[0].at) / 60000) : current;
+  const previous = oldEvents.length ? oldVelocity : newVelocity;
+  return {
+    totalMints: live.length,
+    uniqueMinters: new Set(live.map((e) => e.to)).size,
+    mintsPerMinute: current,
+    previousMintsPerMinute: previous,
+    acceleration: previous > 0 ? (current - previous) / previous : 0,
+  };
+}
+
+function printExplainReport(rows, { threshold, minSignalCoverage, totalCandidates, apiRequests, eventEnriched, holderEnriched, scoreQualified, coverageSuppressed, riskFlagged }) {
   const hardRejected = rows.filter(({ result }) => result.rejected).length;
   const scoredRows = rows.filter(({ result }) => !result.rejected);
   const belowThreshold = scoredRows.filter(({ result }) => result.score < threshold).length;
-  const scoreQualified = scoredRows.filter(({ result }) => result.score >= threshold).length;
-  const coverageSuppressed = scoredRows.filter(({ result }) => result.score >= threshold && (result.available?.length || 0) < minSignalCoverage).length;
-  const riskFlagged = scoredRows.filter(({ result }) => (result.riskScore || 0) >= 40).length;
   const coverageCounts = {};
   for (const { result } of scoredRows) {
     const n = result.available?.length || 0;
     coverageCounts[n] = (coverageCounts[n] || 0) + 1;
   }
-
   const top = [...scoredRows].sort((a, b) => b.result.score - a.result.score).slice(0, 10);
-
   console.log('\n[poll] EXPLAIN REPORT');
   console.log('────────────────────────────────────────');
   console.log(`Candidates discovered: ${totalCandidates}`);
@@ -164,14 +224,15 @@ function printExplainReport(rows, threshold, minSignalCoverage, totalCandidates,
   console.log(`Score-qualified: ${scoreQualified}`);
   console.log(`Coverage-suppressed (<${minSignalCoverage}/8): ${coverageSuppressed}`);
   console.log(`Risk-flagged (risk >= 40): ${riskFlagged}`);
+  console.log(`Mint-event enriched: ${eventEnriched}`);
+  console.log(`Holder enriched: ${holderEnriched}`);
   console.log(`API requests used: ${apiRequests}`);
   console.log(`Signal coverage: ${Object.entries(coverageCounts).sort(([a],[b]) => Number(a)-Number(b)).map(([n,c]) => `${n}/8=${c}`).join(', ') || 'none'}`);
-
   console.log('\nTop candidates:');
   if (!top.length) console.log('none');
   for (const { candidate, result } of top) {
     console.log(`• ${candidate.name || '(unnamed)'} — ${result.score}/100 | confidence ${Math.round((result.confidence || 0) * 100)}% | risk ${result.riskScore ?? 0} | coverage ${result.available?.length || 0}/8`);
-    for (const reason of (result.reasons || []).slice(0, 4)) console.log(`  - ${reason}`);
+    for (const reason of (result.reasons || []).slice(0, 6)) console.log(`  - ${reason}`);
   }
   console.log('────────────────────────────────────────\n');
 }
