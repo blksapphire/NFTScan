@@ -1,0 +1,48 @@
+name: Build sandbox ZIP
+
+on:
+  push:
+    branches:
+      - sandbox/opensea-improvements
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Check out sandbox
+        uses: actions/checkout@v4
+
+      - name: Use Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Verify syntax
+        run: npm run check
+
+      - name: Run existing self-test
+        run: npm run selftest
+
+      - name: Run research ledger tests
+        run: npm run test:research
+
+      - name: Create clean test ZIP
+        run: |
+          set -euo pipefail
+          rm -rf .git state.json .env
+          mkdir -p dist
+          zip -r dist/NFTScan-sandbox-improvements.zip . \
+            -x 'dist/*' '*.log' '.DS_Store'
+          sha256sum dist/NFTScan-sandbox-improvements.zip | tee dist/SHA256SUMS.txt
+
+      - name: Upload sandbox ZIP
+        uses: actions/upload-artifact@v4
+        with:
+          name: NFTScan-sandbox-improvements
+          path: dist/
+          if-no-files-found: error
