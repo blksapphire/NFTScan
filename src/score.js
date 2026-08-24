@@ -59,7 +59,6 @@ export function scoreCandidate(candidate, config, nowMs = Date.now()) {
 
   const coverage = unit(availableWeight / 100);
   const base = weighted / availableWeight;
-  // Missing evidence is a confidence problem, not a reason to renormalise to 100%.
   const confidenceFloor = Number(config.confidence?.minimumMultiplier ?? 0.60);
   const confidence = confidenceFloor + (1 - confidenceFloor) * coverage;
 
@@ -159,7 +158,19 @@ function computeAcceleration(candidate, components, reasons) {
 }
 
 function computeFreshness(candidate, config, nowMs, components, reasons) {
-  if (candidate.kind === 'upcoming') { components.contractFreshness = 1; return; }
+  if (candidate.kind === 'upcoming') {
+    components.contractFreshness = 1;
+    return;
+  }
+
+  // Collection age is useful for genuinely new collections. It is not a valid
+  // negative signal for an existing collection that is minting right now.
+  if (candidate.kind === 'live' || candidate.source === 'drops:minting') {
+    components.contractFreshness = 1;
+    reasons.push('Collection age not penalized for a live mint');
+    return;
+  }
+
   if (!Number.isFinite(candidate.createdAtMs)) return;
   const maxAge = Number(config.freshness?.maxCollectionAgeHours) || 72;
   const ageHours = hoursBetween(nowMs, candidate.createdAtMs);
