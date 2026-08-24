@@ -40,6 +40,7 @@ export class OpenSeaClient {
     this.keyFetchError = null;
     this.keyExpiresAt = null;
     this.cache = new Map();
+    this.lastMintEventDiagnostics = { requests: 0, returned: 0, timestampType: null, recipients: 0 };
   }
 
   log(...args) {
@@ -192,12 +193,11 @@ export class OpenSeaClient {
     return Array.isArray(body?.holders) ? body.holders : [];
   }
 
-  /** Recent mint events for a collection; used by poll mode to reconstruct demand. */
+  /** Recent mint events for a collection; poll mode reconstructs demand from these events. */
   async getMintEventsByCollection(slug, { after, limit = 200 } = {}) {
-    if (!slug) return { events: [], rawCount: 0, eventTimestampType: null, recipientCount: 0 };
+    if (!slug) return [];
     const body = await this.get(`/api/v2/events/collection/${encodeURIComponent(slug)}`, { after, event_type: 'mint', limit }, { cache: false, optional: true });
     const events = Array.isArray(body?.asset_events) ? body.asset_events : (Array.isArray(body?.events) ? body.events : []);
-    const rawCount = events.length;
     let timestampType = null;
     let recipientCount = 0;
     for (const event of events) {
@@ -208,7 +208,14 @@ export class OpenSeaClient {
         event.event_timestamp = new Date(rawTimestamp * 1000).toISOString();
       }
     }
-    this.log(`mint events ${slug}: returned=${rawCount} timestampType=${timestampType ?? 'none'} recipients=${recipientCount}`);
-    return { events, rawCount, eventTimestampType: timestampType, recipientCount };
+    this.lastMintEventDiagnostics = {
+      requests: this.lastMintEventDiagnostics.requests + 1,
+      returned: events.length,
+      timestampType,
+      recipients: recipientCount,
+      lastSlug: slug,
+    };
+    this.log(`mint events ${slug}: returned=${events.length} timestampType=${timestampType ?? 'none'} recipients=${recipientCount}`);
+    return events;
   }
 }
