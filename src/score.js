@@ -60,7 +60,7 @@ export function scoreCandidate(candidate, config, nowMs = Date.now()) {
   const coverage = unit(availableWeight / 100);
   const base = weighted / availableWeight;
   // Missing evidence is a confidence problem, not a reason to renormalise to 100%.
-  const confidenceFloor = Number(config.confidence?.minimumMultiplier ?? 0.55);
+  const confidenceFloor = Number(config.confidence?.minimumMultiplier ?? 0.60);
   const confidence = confidenceFloor + (1 - confidenceFloor) * coverage;
 
   const { riskMultiplier, riskReasons, riskScore } = assessRisk(candidate, config);
@@ -197,7 +197,7 @@ function computeConcentration(candidate, components, reasons) {
   const top10 = sorted.slice(0, 10).reduce((a, b) => a + b, 0);
   components.holderConcentration = unit(1 - ramp(top10, 20, 70));
   if (top1 >= 30) components.holderConcentration = Math.min(components.holderConcentration, top1 >= 50 ? 0.05 : 0.2);
-  reasons.push(`Ownership: top ${Math.min(10, sorted.length)} wallets hold ${Math.round(top10)}%; largest ${Math.round(top1)}%`);
+  reasons.push(`Concentrated ownership: top ${Math.min(10, sorted.length)} wallets hold ${Math.round(top10)}%; largest ${Math.round(top1)}%`);
 }
 
 function computeWalletQuality(candidate, components, reasons) {
@@ -231,13 +231,13 @@ function assessRisk(candidate, config) {
   const reasons = [];
 
   if (top1 !== null) {
-    if (top1 >= Number(risk.severeTopHolderPct ?? 50)) { multiplier *= Number(risk.severeTopHolderPenalty ?? 0.35); riskScore += 55; reasons.push(`RISK: one wallet controls ${Math.round(top1)}% of supply`); }
-    else if (top1 >= Number(risk.highTopHolderPct ?? 30)) { multiplier *= Number(risk.highTopHolderPenalty ?? 0.65); riskScore += 30; reasons.push(`RISK: largest wallet controls ${Math.round(top1)}% of supply`); }
+    if (top1 >= Number(risk.severeTopHolderPct ?? 50)) { multiplier *= Number(risk.severeTopHolderPenalty ?? 0.35); riskScore += 55; reasons.push(`RISK: one wallet holds ${Math.round(top1)}% of supply — dump risk is severe`); }
+    else if (top1 >= Number(risk.highTopHolderPct ?? 30)) { multiplier *= Number(risk.highTopHolderPenalty ?? 0.65); riskScore += 30; reasons.push(`RISK: largest wallet holds ${Math.round(top1)}% of supply`); }
   }
   const velocity = Number(candidate.mintsPerMinute);
   if (candidate.mintPriceEth === 0 && Number.isFinite(velocity) && velocity > Number(risk.freeMintBotRatePerMin ?? 30)) { multiplier *= Number(risk.freeMintBotPenalty ?? 0.7); riskScore += 25; reasons.push(`RISK: free mint at ${velocity.toFixed(0)}/min resembles bot farming`); }
   const status = String(candidate.safelistStatus || '').toLowerCase();
-  if (!['verified', 'approved'].includes(status) && Number(candidate.mintPriceEth) >= Number(risk.unverifiedPriceEth ?? 0.5)) { multiplier *= Number(risk.unverifiedPricePenalty ?? 0.7); riskScore += 20; reasons.push(`RISK: expensive unverified mint (${candidate.mintPriceEth} ETH)`); }
+  if (!['verified', 'approved'].includes(status) && Number(candidate.mintPriceEth) >= Number(risk.unverifiedPriceEth ?? 0.5)) { multiplier *= Number(risk.unverifiedPricePenalty ?? 0.7); riskScore += 20; reasons.push(`RISK: expensive unverified collection (${candidate.mintPriceEth} ETH)`); }
   if (candidate.walletQuality?.sharedFundingRatio >= 0.5) { multiplier *= 0.7; riskScore += 35; reasons.push(`RISK: strong shared-funding wallet cluster`); }
   const contract = candidate.contractRisk;
   if (contract) {
