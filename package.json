@@ -1,13 +1,11 @@
 {
   "name": "opensea-mint-sniper",
-  "version": "1.0.0",
+  "version": "1.1.0-sandbox",
   "private": true,
-  "description": "Telegram alert bot that finds new OpenSea mints early and scores them like a trading screener. Alert-only: holds no wallet keys.",
+  "description": "NFTScan: real-time NFT mint intelligence, scoring, risk analysis and outcome tracking.",
   "type": "module",
   "main": "src/index.js",
-  "engines": {
-    "node": ">=18.17.0"
-  },
+  "engines": { "node": ">=18.17.0" },
   "scripts": {
     "start": "node src/index.js",
     "once": "node src/index.js --once",
@@ -17,14 +15,11 @@
     "newkey": "node src/index.js --new-key",
     "selftest": "node test/selftest.js",
     "diagnose": "node test/diagnose.js",
-    "check": "node --check src/index.js && node --check src/poll.js && node --check src/stream.js"
+    "research": "node src/research-cli.js",
+    "backtest": "node src/research-cli.js report",
+    "calibrate": "node src/research-cli.js calibrate",
+    "check": "node --check src/index.js && node --check src/poll.js && node --check src/stream.js && node --check src/score.js && node --check src/research.js && node --check src/research-cli.js && node --check src/wallets.js && node --check src/contractRisk.js && node --check src/market.js"
   },
-  "keywords": [
-    "opensea",
-    "nft",
-    "telegram",
-    "mint",
-    "alerts"
-  ],
+  "keywords": ["opensea", "nft", "telegram", "mint", "alerts", "research", "backtesting"],
   "license": "MIT"
 }
