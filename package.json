@@ -1,6 +1,6 @@
 {
   "name": "opensea-mint-sniper",
-  "version": "1.0.0",
+  "version": "1.1.0-sandbox",
   "private": true,
   "description": "Telegram alert bot that finds new OpenSea mints early and scores them like a trading screener. Alert-only: holds no wallet keys.",
   "type": "module",
@@ -15,9 +15,11 @@
     "stream": "node src/index.js --mode=stream",
     "test:telegram": "node src/index.js --test-telegram",
     "newkey": "node src/index.js --new-key",
+    "research": "node src/research.js report",
+    "research:add": "node src/research.js add",
     "selftest": "node test/selftest.js",
     "diagnose": "node test/diagnose.js",
-    "check": "node --check src/index.js && node --check src/poll.js && node --check src/stream.js"
+    "check": "node --check src/index.js && node --check src/poll.js && node --check src/stream.js && node --check src/state.js && node --check src/research.js"
   },
   "keywords": [
     "opensea",
