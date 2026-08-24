@@ -14,25 +14,29 @@ const EMPTY = {
   research: { version: 1, alerts: [], snapshots: [] },
 };
 
+/** Normalize both fresh state and legacy v1 state before any caller touches it. */
+export function normalizeState(parsed = {}) {
+  return {
+    ...structuredClone(EMPTY),
+    ...parsed,
+    version: Math.max(2, Number(parsed.version) || 1),
+    alerted: parsed.alerted ?? {},
+    overrides: parsed.overrides ?? {},
+    recent: Array.isArray(parsed.recent) ? parsed.recent : [],
+    stats: { ...EMPTY.stats, ...(parsed.stats ?? {}) },
+    research: {
+      ...EMPTY.research,
+      ...(parsed.research ?? {}),
+      alerts: Array.isArray(parsed.research?.alerts) ? parsed.research.alerts : [],
+      snapshots: Array.isArray(parsed.research?.snapshots) ? parsed.research.snapshots : [],
+    },
+  };
+}
+
 export function loadState(file) {
   if (!existsSync(file)) return structuredClone(EMPTY);
   try {
-    const parsed = JSON.parse(readFileSync(file, 'utf8'));
-    return {
-      ...structuredClone(EMPTY),
-      ...parsed,
-      version: Math.max(2, Number(parsed.version) || 1),
-      alerted: parsed.alerted ?? {},
-      overrides: parsed.overrides ?? {},
-      recent: Array.isArray(parsed.recent) ? parsed.recent : [],
-      stats: { ...EMPTY.stats, ...(parsed.stats ?? {}) },
-      research: {
-        ...EMPTY.research,
-        ...(parsed.research ?? {}),
-        alerts: Array.isArray(parsed.research?.alerts) ? parsed.research.alerts : [],
-        snapshots: Array.isArray(parsed.research?.snapshots) ? parsed.research.snapshots : [],
-      },
-    };
+    return normalizeState(JSON.parse(readFileSync(file, 'utf8')));
   } catch (err) {
     console.warn(`[state] ${file} unreadable (${err.message}); starting fresh.`);
     return structuredClone(EMPTY);
@@ -49,21 +53,27 @@ export function saveState(file, state) {
 }
 
 export function pruneState(state, dedupeDays, now = Date.now(), researchRetentionDays = 90) {
+  // pruneState is intentionally safe for callers/tests that pass an older
+  // in-memory v1 state directly rather than going through loadState().
+  const normalized = normalizeState(state);
+  Object.assign(state, normalized);
+
   const cutoff = now - Number(dedupeDays) * 86400000;
   let removed = 0;
   for (const [key, iso] of Object.entries(state.alerted)) {
     const at = Date.parse(iso);
-    if (!Number.isFinite(at) || at < cutoff) { delete state.alerted[key]; removed++; }
+    if (!Number.isFinite(at) || at < cutoff) {
+      delete state.alerted[key];
+      removed++;
+    }
   }
 
   const researchCutoff = now - Number(researchRetentionDays) * 86400000;
-  const alerts = Array.isArray(state.research?.alerts) ? state.research.alerts : [];
-  const snapshots = Array.isArray(state.research?.snapshots) ? state.research.snapshots : [];
-  state.research.alerts = alerts.filter((a) => {
+  state.research.alerts = state.research.alerts.filter((a) => {
     const t = Date.parse(a.at);
     return !Number.isFinite(t) || t >= researchCutoff;
   }).slice(0, 5000);
-  state.research.snapshots = snapshots.filter((a) => {
+  state.research.snapshots = state.research.snapshots.filter((a) => {
     const t = Date.parse(a.at);
     return !Number.isFinite(t) || t >= researchCutoff;
   }).slice(-10000);
