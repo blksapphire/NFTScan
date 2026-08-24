@@ -31,7 +31,7 @@
     "walletQuality": 10
   },
   "confidence": {
-    "minimumMultiplier": 0.55
+    "minimumMultiplier": 0.60
   },
   "velocity": {
     "windowMinutes": 10,
