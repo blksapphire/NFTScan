@@ -54,10 +54,8 @@ export async function runPoll(cfg, state) {
   if (!candidates.length) { finish(cfg, state); return { alerts: 0, paused: false, sourcesOk: succeeded, sourcesAttempted: attempted }; }
 
   candidates.sort((a, b) => (KIND_PRIORITY[a.kind] ?? 9) - (KIND_PRIORITY[b.kind] ?? 9));
-  const remainingRequests = Math.max(0, client.maxRequests - client.requestsUsed - reserve);
-  // Collection detail + holders is normally 2 requests. Upcoming drops do not
-  // need holders, so they get a better effective capacity.
   const scored = [];
+  const explainRows = [];
   for (const candidate of candidates) {
     const estimatedCost = candidate.kind === 'upcoming' ? 1 : 2;
     if (client.requestsUsed + estimatedCost + reserve > client.maxRequests) break;
@@ -67,9 +65,12 @@ export async function runPoll(cfg, state) {
       if (cfg.debug) console.warn(`[poll] enrichment warning for ${candidate.name}: ${err.message}`);
     }
     const result = scoreCandidate(candidate, cfg, nowMs);
+    explainRows.push({ candidate, result });
     if (result.rejected || result.score < minScore) continue;
     scored.push({ candidate, result });
   }
+
+  if (cfg.explain) printExplainReport(explainRows, minScore, candidates.length, client.requestsUsed);
 
   scored.sort((a, b) => (b.result.score - a.result.score) || ((a.result.riskScore || 0) - (b.result.riskScore || 0)));
   const toSend = scored.slice(0, Number(cfg.maxAlertsPerRun) || 6);
@@ -90,6 +91,47 @@ export async function runPoll(cfg, state) {
   console.log(`[poll] done. ${sent} alert(s) sent, ${client.requestsUsed} API request(s) used${client.rateLimitRemaining !== null ? `, ${client.rateLimitRemaining} left` : ''}`);
   finish(cfg, state);
   return { alerts: sent, paused: false };
+}
+
+function printExplainReport(rows, threshold, totalCandidates, apiRequests) {
+  const hardRejected = rows.filter(({ result }) => result.rejected).length;
+  const scoredRows = rows.filter(({ result }) => !result.rejected);
+  const belowThreshold = scoredRows.filter(({ result }) => result.score < threshold).length;
+  const riskFlagged = scoredRows.filter(({ result }) => (result.riskScore || 0) >= 40).length;
+  const coverageCounts = {};
+  for (const { result } of scoredRows) {
+    const n = result.available?.length || 0;
+    coverageCounts[n] = (coverageCounts[n] || 0) + 1;
+  }
+
+  const top = [...scoredRows]
+    .sort((a, b) => b.result.score - a.result.score)
+    .slice(0, 10);
+
+  console.log('\n[poll] EXPLAIN REPORT');
+  console.log('────────────────────────────────────────');
+  console.log(`Candidates discovered: ${totalCandidates}`);
+  console.log(`Candidates enriched/scored: ${rows.length}`);
+  console.log(`Hard rejected: ${hardRejected}`);
+  console.log(`Below threshold (${threshold}): ${belowThreshold}`);
+  console.log(`Risk-flagged (risk >= 40): ${riskFlagged}`);
+  console.log(`API requests used: ${apiRequests}`);
+  console.log(`Signal coverage: ${Object.entries(coverageCounts).sort(([a],[b]) => Number(a)-Number(b)).map(([n,c]) => `${n}/8=${c}`).join(', ') || 'none'}`);
+
+  if (!top.length) {
+    console.log('Top candidates: none');
+    console.log('────────────────────────────────────────\n');
+    return;
+  }
+
+  console.log('\nTop candidates:');
+  for (const { candidate, result } of top) {
+    const status = result.rejected ? `REJECTED: ${result.rejected}` : `${result.score}/100`;
+    console.log(`• ${candidate.name || '(unnamed)'} — ${status} | confidence ${Math.round((result.confidence || 0) * 100)}% | risk ${result.riskScore ?? 0}`);
+    const reasons = (result.reasons || []).slice(0, 4);
+    for (const reason of reasons) console.log(`  - ${reason}`);
+  }
+  console.log('────────────────────────────────────────\n');
 }
 
 function finish(cfg, state) {
