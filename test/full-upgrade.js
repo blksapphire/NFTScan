@@ -9,14 +9,19 @@ import { normalizeState, pruneState } from '../src/state.js';
 const config = {
   minScore: 70,
   weights: { uniqueMinterRatio: 23, mintVelocity: 15, mintAcceleration: 12, contractFreshness: 12, verification: 10, priceSanity: 8, holderConcentration: 10, walletQuality: 10 },
-  confidence: { minimumMultiplier: 0.55 },
+  confidence: { minimumMultiplier: 0.60 },
   freshness: { maxDropLeadHours: 168, maxCollectionAgeHours: 72 },
   hardRejects: { requireContractAddress: true, rejectFreeMintsAboveSupply: 10000, maxMintPriceEth: 5, requireStageTimeInFuture: true },
   priceSanity: { idealMinEth: 0.005, idealMaxEth: 0.15, decayToZeroEth: 1 },
   risk: { severeTopHolderPct: 50, severeTopHolderPenalty: 0.35, highTopHolderPct: 30, highTopHolderPenalty: 0.65, freeMintBotRatePerMin: 30, freeMintBotPenalty: 0.7, unverifiedPriceEth: 0.5, unverifiedPricePenalty: 0.7 }
 };
 const now = Date.parse('2026-08-24T08:00:00Z');
-const base = { kind:'live', chain:'ethereum', contractAddress:'0xabc', name:'Test', mintPriceEth:0.03, totalSupply:5000, createdAtMs:now-2*3600000, safelistStatus:'approved', socials:{twitter:'x',discord:'x'}, totalMints:400, uniqueMinters:350, mintsPerMinute:40, previousMintsPerMinute:25, topHolders:[{percentage:0.02},{percentage:0.01}] };
+const base = {
+  kind:'live', chain:'ethereum', contractAddress:'0xabc', name:'Test', mintPriceEth:0.03, totalSupply:5000,
+  createdAtMs:now-2*3600000, safelistStatus:'approved', socials:{twitter:'x',discord:'x'}, totalMints:400,
+  uniqueMinters:350, mintsPerMinute:40, previousMintsPerMinute:25, topHolders:[{percentage:0.02},{percentage:0.01}],
+  walletQuality:{score:0.9, sharedFundingRatio:0.05}
+};
 const good = scoreCandidate(base, config, now);
 assert.equal(good.rejected, null);
 assert.equal(good.available.length, 8);
@@ -45,9 +50,6 @@ assert(Array.isArray(report.buckets));
 assert(Object.keys(report.featureImportance).length);
 assert(calibrateThresholds(state,{horizonMinutes:360}).length);
 
-// Regression: legacy v1 state had no `research` object. Direct calls to pruneState
-// must remain safe even when bypassing loadState(), which is how the original suite
-// exercises it.
 const legacy = { version:1, alerted:{}, telegramOffset:0, overrides:{}, stats:{}, recent:[] };
 const normalized = normalizeState(legacy);
 assert(Array.isArray(normalized.research.alerts));
