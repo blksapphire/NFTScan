@@ -4,6 +4,9 @@
   "chains": ["ethereum"],
   "minScore": 70,
   "maxAlertsPerRun": 6,
+  "alerts": {
+    "minSignalCoverage": 5
+  },
   "sources": {
     "upcomingDrops": true,
     "recentlyMinted": true,
