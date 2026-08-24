@@ -194,18 +194,21 @@ export class OpenSeaClient {
 
   /** Recent mint events for a collection; used by poll mode to reconstruct demand. */
   async getMintEventsByCollection(slug, { after, limit = 200 } = {}) {
-    if (!slug) return [];
+    if (!slug) return { events: [], rawCount: 0, eventTimestampType: null, recipientCount: 0 };
     const body = await this.get(`/api/v2/events/collection/${encodeURIComponent(slug)}`, { after, event_type: 'mint', limit }, { cache: false, optional: true });
     const events = Array.isArray(body?.asset_events) ? body.asset_events : (Array.isArray(body?.events) ? body.events : []);
-    return events.map((event) => {
-      const raw = event?.event_timestamp;
-      if (typeof raw === 'number' && Number.isFinite(raw)) {
-        return { ...event, event_timestamp: new Date(raw * 1000).toISOString() };
+    const rawCount = events.length;
+    let timestampType = null;
+    let recipientCount = 0;
+    for (const event of events) {
+      const rawTimestamp = event?.event_timestamp ?? event?.timestamp ?? event?.occurred_at ?? null;
+      if (timestampType === null && rawTimestamp !== null) timestampType = typeof rawTimestamp;
+      if (event?.to_address || event?.to_account?.address || event?.recipient?.address || event?.nft?.owner?.address || event?.nft?.owner) recipientCount++;
+      if (typeof rawTimestamp === 'number' && Number.isFinite(rawTimestamp)) {
+        event.event_timestamp = new Date(rawTimestamp * 1000).toISOString();
       }
-      if (typeof raw === 'string' && /^\d+(?:\.\d+)?$/.test(raw.trim())) {
-        return { ...event, event_timestamp: new Date(Number(raw) * 1000).toISOString() };
-      }
-      return event;
-    });
+    }
+    this.log(`mint events ${slug}: returned=${rawCount} timestampType=${timestampType ?? 'none'} recipients=${recipientCount}`);
+    return { events, rawCount, eventTimestampType: timestampType, recipientCount };
   }
 }
