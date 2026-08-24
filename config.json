@@ -82,8 +82,8 @@
     "maxRequestsPerRun": 50,
     "reserveRequests": 5,
     "targetRatePerMinute": 50,
-    "stageOneCandidates": 25,
-    "mintEventCandidates": 18,
+    "stageOneCandidates": 22,
+    "mintEventCandidates": 16,
     "holderCandidates": 4,
     "mintEventWindowMinutes": 10
   }
