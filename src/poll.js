@@ -19,6 +19,7 @@ export async function runPoll(cfg, state) {
   const applied = await processCommands(tg, state, cfg);
   if (applied.length) console.log(`[poll] applied commands: ${applied.join(', ')}`);
   const minScore = state.overrides?.minScore ?? cfg.minScore;
+  const minSignalCoverage = Math.max(1, Number(cfg.alerts?.minSignalCoverage) || 5);
   const paused = Boolean(state.overrides?.paused);
   state.stats.runs = (state.stats.runs || 0) + 1;
   state.stats.lastRunAt = startedAt;
@@ -63,17 +64,15 @@ export async function runPoll(cfg, state) {
   }
 
   // Source order is deliberate, but we now enrich broadly before paying for
-  // expensive holder analysis. This prevents the first 14 live candidates from
-  // consuming the whole run budget while the remaining 68 are never scored.
+  // expensive holder analysis. This prevents the first few candidates from
+  // consuming the whole run budget while the remaining candidates are never scored.
   candidates.sort((a, b) => (KIND_PRIORITY[a.kind] ?? 9) - (KIND_PRIORITY[b.kind] ?? 9));
 
   const scored = [];
   const explainRows = [];
   const stageOne = [];
 
-  // Stage 1: collection detail only, one request per candidate. Upcoming drops
-  // don't require this if the list response is already rich, so the same path is
-  // still cheap; the budget check guarantees we never spend the reserve.
+  // Stage 1: collection detail only, one request per candidate.
   for (const candidate of candidates) {
     if (client.requestsUsed + 1 + reserve > client.maxRequests) break;
     try {
@@ -86,9 +85,8 @@ export async function runPoll(cfg, state) {
     }
   }
 
-  // Rank using cheap data, then spend the remaining calls on holders for the most
-  // promising non-upcoming candidates. This makes request budget work hardest on
-  // candidates that could actually become alerts.
+  // Rank using cheap data, then spend remaining calls on holders for the most
+  // promising non-upcoming candidates.
   stageOne.sort((a, b) => (b.result.score - a.result.score) || ((a.result.riskScore || 0) - (b.result.riskScore || 0)));
   const holderSlots = Math.max(0, client.maxRequests - client.requestsUsed - reserve);
   let holderUsed = 0;
@@ -111,11 +109,16 @@ export async function runPoll(cfg, state) {
     scored.push({ candidate, result });
   }
 
-  if (cfg.explain) printExplainReport(explainRows, minScore, candidates.length, client.requestsUsed);
+  if (cfg.explain) printExplainReport(explainRows, minScore, minSignalCoverage, candidates.length, client.requestsUsed);
 
   scored.sort((a, b) => (b.result.score - a.result.score) || ((a.result.riskScore || 0) - (b.result.riskScore || 0)));
-  const toSend = scored.slice(0, Number(cfg.maxAlertsPerRun) || 6);
-  console.log(`[poll] ${scored.length} passed the screener; sending ${toSend.length}.`);
+  const eligible = scored.filter(({ result }) => (result.available?.length || 0) >= minSignalCoverage);
+  const coverageSuppressed = scored.length - eligible.length;
+  if (coverageSuppressed > 0) {
+    console.log(`[poll] ${coverageSuppressed} score-qualified candidate(s) suppressed for insufficient signal coverage (<${minSignalCoverage}/8).`);
+  }
+  const toSend = eligible.slice(0, Number(cfg.maxAlertsPerRun) || 6);
+  console.log(`[poll] ${toSend.length} passed the screener and coverage gate; sending ${toSend.length}.`);
 
   let sent = 0;
   for (const { candidate, result } of toSend) {
@@ -137,10 +140,12 @@ export async function runPoll(cfg, state) {
   return { alerts: sent, paused: false };
 }
 
-function printExplainReport(rows, threshold, totalCandidates, apiRequests) {
+function printExplainReport(rows, threshold, minSignalCoverage, totalCandidates, apiRequests) {
   const hardRejected = rows.filter(({ result }) => result.rejected).length;
   const scoredRows = rows.filter(({ result }) => !result.rejected);
   const belowThreshold = scoredRows.filter(({ result }) => result.score < threshold).length;
+  const scoreQualified = scoredRows.filter(({ result }) => result.score >= threshold).length;
+  const coverageSuppressed = scoredRows.filter(({ result }) => result.score >= threshold && (result.available?.length || 0) < minSignalCoverage).length;
   const riskFlagged = scoredRows.filter(({ result }) => (result.riskScore || 0) >= 40).length;
   const coverageCounts = {};
   for (const { result } of scoredRows) {
@@ -156,6 +161,8 @@ function printExplainReport(rows, threshold, totalCandidates, apiRequests) {
   console.log(`Candidates enriched/scored: ${rows.length}`);
   console.log(`Hard rejected: ${hardRejected}`);
   console.log(`Below threshold (${threshold}): ${belowThreshold}`);
+  console.log(`Score-qualified: ${scoreQualified}`);
+  console.log(`Coverage-suppressed (<${minSignalCoverage}/8): ${coverageSuppressed}`);
   console.log(`Risk-flagged (risk >= 40): ${riskFlagged}`);
   console.log(`API requests used: ${apiRequests}`);
   console.log(`Signal coverage: ${Object.entries(coverageCounts).sort(([a],[b]) => Number(a)-Number(b)).map(([n,c]) => `${n}/8=${c}`).join(', ') || 'none'}`);
@@ -163,7 +170,7 @@ function printExplainReport(rows, threshold, totalCandidates, apiRequests) {
   console.log('\nTop candidates:');
   if (!top.length) console.log('none');
   for (const { candidate, result } of top) {
-    console.log(`• ${candidate.name || '(unnamed)'} — ${result.score}/100 | confidence ${Math.round((result.confidence || 0) * 100)}% | risk ${result.riskScore ?? 0}`);
+    console.log(`• ${candidate.name || '(unnamed)'} — ${result.score}/100 | confidence ${Math.round((result.confidence || 0) * 100)}% | risk ${result.riskScore ?? 0} | coverage ${result.available?.length || 0}/8`);
     for (const reason of (result.reasons || []).slice(0, 4)) console.log(`  - ${reason}`);
   }
   console.log('────────────────────────────────────────\n');
