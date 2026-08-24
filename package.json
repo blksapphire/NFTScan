@@ -17,9 +17,10 @@
     "newkey": "node src/index.js --new-key",
     "research": "node src/research.js report",
     "research:add": "node src/research.js add",
+    "test:research": "node test/research.js",
     "selftest": "node test/selftest.js",
     "diagnose": "node test/diagnose.js",
-    "check": "node --check src/index.js && node --check src/poll.js && node --check src/stream.js && node --check src/state.js && node --check src/research.js"
+    "check": "node --check src/index.js && node --check src/poll.js && node --check src/stream.js && node --check src/state.js && node --check src/research.js && node --check test/research.js"
   },
   "keywords": [
     "opensea",
