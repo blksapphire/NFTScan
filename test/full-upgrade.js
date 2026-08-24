@@ -4,6 +4,7 @@ import { createResearchState, recordAlert, addOutcome, buildBacktestReport, cali
 import { analyseWallets } from '../src/wallets.js';
 import { analyseContractRisk } from '../src/contractRisk.js';
 import { analyseMarket, outcomeFromMint } from '../src/market.js';
+import { normalizeState, pruneState } from '../src/state.js';
 
 const config = {
   minScore: 70,
@@ -43,4 +44,16 @@ assert(report.samples >= 2);
 assert(Array.isArray(report.buckets));
 assert(Object.keys(report.featureImportance).length);
 assert(calibrateThresholds(state,{horizonMinutes:360}).length);
+
+// Regression: legacy v1 state had no `research` object. Direct calls to pruneState
+// must remain safe even when bypassing loadState(), which is how the original suite
+// exercises it.
+const legacy = { version:1, alerted:{}, telegramOffset:0, overrides:{}, stats:{}, recent:[] };
+const normalized = normalizeState(legacy);
+assert(Array.isArray(normalized.research.alerts));
+assert(Array.isArray(normalized.research.snapshots));
+pruneState(legacy, 30, now);
+assert(legacy.research && Array.isArray(legacy.research.alerts));
+assert(legacy.research && Array.isArray(legacy.research.snapshots));
+
 console.log('FULL UPGRADE TESTS PASSED');
