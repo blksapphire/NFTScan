@@ -81,6 +81,10 @@
   "budget": {
     "maxRequestsPerRun": 50,
     "reserveRequests": 5,
-    "targetRatePerMinute": 50
+    "targetRatePerMinute": 50,
+    "stageOneCandidates": 25,
+    "mintEventCandidates": 18,
+    "holderCandidates": 4,
+    "mintEventWindowMinutes": 10
   }
 }
