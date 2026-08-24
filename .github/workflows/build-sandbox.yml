@@ -4,10 +4,16 @@ on:
   push:
     branches:
       - sandbox/opensea-improvements
+  pull_request:
+    branches:
+      - main
   workflow_dispatch:
 
 permissions:
   contents: read
+
+env:
+  CI: true
 
 jobs:
   build:
@@ -34,7 +40,7 @@ jobs:
       - name: Create clean test ZIP
         run: |
           set -euo pipefail
-          rm -rf .git state.json .env
+          rm -rf .git state.json .env dist
           mkdir -p dist
           zip -r dist/NFTScan-sandbox-improvements.zip . \
             -x 'dist/*' '*.log' '.DS_Store'
