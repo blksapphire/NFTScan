@@ -24,7 +24,7 @@ export async function runPoll(cfg, state) {
   state.stats.lastRunAt = startedAt;
   if (paused) { console.log('[poll] paused; skipping detection. /resume to re-enable.'); finish(cfg, state); return { alerts: 0, paused: true }; }
 
-  const maxRequests = Number(cfg.budget?.maxRequestsPerRun) || 40;
+  const maxRequests = Number(cfg.budget?.maxRequestsPerRun) || 50;
   const reserve = Math.max(0, Number(cfg.budget?.reserveRequests) || 0);
   const client = new OpenSeaClient({ apiKey: cfg.openseaApiKey, debug: cfg.debug, maxRequests });
   const candidates = [];
@@ -36,34 +36,75 @@ export async function runPoll(cfg, state) {
     ['recently minted', sources.recentlyMinted, () => collectLive(client, cfg, state, nowMs)],
     ['new collections', sources.newCollections, () => collectNewCollections(client, cfg, state, nowMs)],
   ];
+
   for (const [label, enabled, run] of collectors) {
     if (!enabled) continue;
     attempted++;
-    try { const found = await run(); succeeded++; console.log(`[poll] ${label}: ${found.length} candidate(s)`); candidates.push(...found); }
-    catch (err) {
+    try {
+      const found = await run();
+      succeeded++;
+      console.log(`[poll] ${label}: ${found.length} candidate(s)`);
+      candidates.push(...found);
+    } catch (err) {
       failures.push({ label, message: err.message, code: err.code });
       if (err instanceof OpenSeaError && RUN_ENDING_CODES.includes(err.code)) break;
       console.error(`[poll] ${label} failed: ${err.message}`);
     }
   }
+
   if (attempted > 0 && succeeded === 0) {
     const first = failures[0];
     const keyProblem = failures.some((f) => String(f.code || '').startsWith('KEY_'));
     ciAnnotate('error', keyProblem ? 'Mint scanner: no usable OpenSea API key' : 'Mint scanner: OpenSea source failure', first?.message || 'No source succeeded');
   }
-  if (!candidates.length) { finish(cfg, state); return { alerts: 0, paused: false, sourcesOk: succeeded, sourcesAttempted: attempted }; }
+  if (!candidates.length) {
+    finish(cfg, state);
+    return { alerts: 0, paused: false, sourcesOk: succeeded, sourcesAttempted: attempted };
+  }
 
+  // Source order is deliberate, but we now enrich broadly before paying for
+  // expensive holder analysis. This prevents the first 14 live candidates from
+  // consuming the whole run budget while the remaining 68 are never scored.
   candidates.sort((a, b) => (KIND_PRIORITY[a.kind] ?? 9) - (KIND_PRIORITY[b.kind] ?? 9));
+
   const scored = [];
   const explainRows = [];
+  const stageOne = [];
+
+  // Stage 1: collection detail only, one request per candidate. Upcoming drops
+  // don't require this if the list response is already rich, so the same path is
+  // still cheap; the budget check guarantees we never spend the reserve.
   for (const candidate of candidates) {
-    const estimatedCost = candidate.kind === 'upcoming' ? 1 : 2;
-    if (client.requestsUsed + estimatedCost + reserve > client.maxRequests) break;
-    try { await enrich(client, candidate, { withHolders: candidate.kind !== 'upcoming' }); }
-    catch (err) {
+    if (client.requestsUsed + 1 + reserve > client.maxRequests) break;
+    try {
+      await enrich(client, candidate, { withHolders: false });
+      const result = scoreCandidate(candidate, cfg, nowMs);
+      stageOne.push({ candidate, result });
+    } catch (err) {
       if (err instanceof OpenSeaError && RUN_ENDING_CODES.includes(err.code)) break;
-      if (cfg.debug) console.warn(`[poll] enrichment warning for ${candidate.name}: ${err.message}`);
+      if (cfg.debug) console.warn(`[poll] stage-1 enrichment warning for ${candidate.name}: ${err.message}`);
     }
+  }
+
+  // Rank using cheap data, then spend the remaining calls on holders for the most
+  // promising non-upcoming candidates. This makes request budget work hardest on
+  // candidates that could actually become alerts.
+  stageOne.sort((a, b) => (b.result.score - a.result.score) || ((a.result.riskScore || 0) - (b.result.riskScore || 0)));
+  const holderSlots = Math.max(0, client.maxRequests - client.requestsUsed - reserve);
+  let holderUsed = 0;
+
+  for (const entry of stageOne) {
+    const { candidate } = entry;
+    if (candidate.kind !== 'upcoming' && holderUsed < holderSlots) {
+      try {
+        await enrich(client, candidate, { withHolders: true });
+        holderUsed++;
+      } catch (err) {
+        if (err instanceof OpenSeaError && RUN_ENDING_CODES.includes(err.code)) break;
+        if (cfg.debug) console.warn(`[poll] holder enrichment warning for ${candidate.name}: ${err.message}`);
+      }
+    }
+
     const result = scoreCandidate(candidate, cfg, nowMs);
     explainRows.push({ candidate, result });
     if (result.rejected || result.score < minScore) continue;
@@ -85,8 +126,11 @@ export async function runPoll(cfg, state) {
       if (cfg.research?.enabled !== false) recordAlert(state, candidate, result, nowMs, cfg);
       sent++;
       state.stats.lastAlertAt = new Date().toISOString();
-    } catch (err) { console.error(`[poll] failed to send alert for ${candidate.name}: ${err.message}`); }
+    } catch (err) {
+      console.error(`[poll] failed to send alert for ${candidate.name}: ${err.message}`);
+    }
   }
+
   state.stats.alertsSent = (state.stats.alertsSent || 0) + sent;
   console.log(`[poll] done. ${sent} alert(s) sent, ${client.requestsUsed} API request(s) used${client.rateLimitRemaining !== null ? `, ${client.rateLimitRemaining} left` : ''}`);
   finish(cfg, state);
@@ -104,9 +148,7 @@ function printExplainReport(rows, threshold, totalCandidates, apiRequests) {
     coverageCounts[n] = (coverageCounts[n] || 0) + 1;
   }
 
-  const top = [...scoredRows]
-    .sort((a, b) => b.result.score - a.result.score)
-    .slice(0, 10);
+  const top = [...scoredRows].sort((a, b) => b.result.score - a.result.score).slice(0, 10);
 
   console.log('\n[poll] EXPLAIN REPORT');
   console.log('────────────────────────────────────────');
@@ -118,18 +160,11 @@ function printExplainReport(rows, threshold, totalCandidates, apiRequests) {
   console.log(`API requests used: ${apiRequests}`);
   console.log(`Signal coverage: ${Object.entries(coverageCounts).sort(([a],[b]) => Number(a)-Number(b)).map(([n,c]) => `${n}/8=${c}`).join(', ') || 'none'}`);
 
-  if (!top.length) {
-    console.log('Top candidates: none');
-    console.log('────────────────────────────────────────\n');
-    return;
-  }
-
   console.log('\nTop candidates:');
+  if (!top.length) console.log('none');
   for (const { candidate, result } of top) {
-    const status = result.rejected ? `REJECTED: ${result.rejected}` : `${result.score}/100`;
-    console.log(`• ${candidate.name || '(unnamed)'} — ${status} | confidence ${Math.round((result.confidence || 0) * 100)}% | risk ${result.riskScore ?? 0}`);
-    const reasons = (result.reasons || []).slice(0, 4);
-    for (const reason of reasons) console.log(`  - ${reason}`);
+    console.log(`• ${candidate.name || '(unnamed)'} — ${result.score}/100 | confidence ${Math.round((result.confidence || 0) * 100)}% | risk ${result.riskScore ?? 0}`);
+    for (const reason of (result.reasons || []).slice(0, 4)) console.log(`  - ${reason}`);
   }
   console.log('────────────────────────────────────────\n');
 }
