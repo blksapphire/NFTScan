@@ -12,6 +12,33 @@ function dedupeIdFor(candidate) { return candidate.contractAddress || candidate.
 const KIND_PRIORITY = { upcoming: 0, live: 1, new_collection: 2 };
 const RUN_ENDING_CODES = ['BUDGET','EXHAUSTED','RATE_LIMITED','KEY_FETCH_FAILED','KEY_RATE_LIMITED','KEY_REJECTED','KEY_SHAPE_UNEXPECTED'];
 
+function scanRow(candidate, result) {
+  return {
+    name: candidate.name || 'Unnamed collection',
+    kind: candidate.kind || 'unknown',
+    source: candidate.source || 'unknown',
+    score: result.score,
+    coverage: result.available?.length || 0,
+    riskScore: result.riskScore ?? 0,
+    confidence: result.confidence ?? 0,
+    rejected: result.rejected || null,
+    contractAddress: candidate.contractAddress || null,
+    slug: candidate.slug || null,
+    chain: candidate.chain || null,
+  };
+}
+
+function discoveredRow(candidate) {
+  return {
+    name: candidate.name || 'Unnamed collection',
+    kind: candidate.kind || 'unknown',
+    source: candidate.source || 'unknown',
+    contractAddress: candidate.contractAddress || null,
+    slug: candidate.slug || null,
+    chain: candidate.chain || null,
+  };
+}
+
 export async function runPoll(cfg, state) {
   const nowMs = Date.now();
   const startedAt = new Date(nowMs).toISOString();
@@ -59,12 +86,11 @@ export async function runPoll(cfg, state) {
     ciAnnotate('error', keyProblem ? 'Mint scanner: no usable OpenSea API key' : 'Mint scanner: OpenSea source failure', first?.message || 'No source succeeded');
   }
   if (!candidates.length) {
+    state.lastScan = { at: startedAt, discovered: [], scored: [], meta: { attempted, succeeded, requests: client.requestsUsed } };
     finish(cfg, state);
     return { alerts: 0, paused: false, sourcesOk: succeeded, sourcesAttempted: attempted };
   }
 
-  // Live mints are the most actionable signal. They get the first share of the
-  // budget, followed by upcoming drops and new collections.
   candidates.sort((a, b) => {
     const rank = (KIND_PRIORITY[a.kind] ?? 9) - (KIND_PRIORITY[b.kind] ?? 9);
     if (rank) return rank;
@@ -84,18 +110,11 @@ export async function runPoll(cfg, state) {
     }
   }
 
-  // Poll-mode demand reconstruction. OpenSea exposes mint events by collection,
-  // so one additional request can provide the same core demand features that the
-  // websocket MintTracker uses: unique minters, velocity and acceleration.
   const eventLimit = Number(cfg.budget?.mintEventCandidates) || 16;
   const eventWindowMinutes = Number(cfg.budget?.mintEventWindowMinutes) || Number(cfg.velocity?.windowMinutes) || 10;
   const afterSeconds = Math.floor((nowMs - eventWindowMinutes * 60000) / 1000);
-  const liveCandidates = stageOne
-    .filter(({ candidate }) => candidate.kind === 'live' && candidate.slug)
-    .sort((a, b) => b.result.score - a.result.score)
-    .slice(0, eventLimit);
+  const liveCandidates = stageOne.filter(({ candidate }) => candidate.kind === 'live' && candidate.slug).sort((a, b) => b.result.score - a.result.score).slice(0, eventLimit);
   let eventEnriched = 0;
-
   for (const { candidate } of liveCandidates) {
     if (client.requestsUsed + 1 + reserve > client.maxRequests) break;
     try {
@@ -115,17 +134,12 @@ export async function runPoll(cfg, state) {
     }
   }
 
-  // Re-score after demand signals, then use the remaining budget for holder
-  // concentration on the strongest candidates.
   for (const entry of stageOne) entry.result = scoreCandidate(entry.candidate, cfg, nowMs);
   stageOne.sort((a, b) => b.result.score - a.result.score);
 
   const holderLimit = Number(cfg.budget?.holderCandidates) || 4;
-  const holderCandidates = stageOne
-    .filter(({ candidate }) => candidate.kind !== 'upcoming' && candidate.slug)
-    .slice(0, holderLimit);
+  const holderCandidates = stageOne.filter(({ candidate }) => candidate.kind !== 'upcoming' && candidate.slug).slice(0, holderLimit);
   let holderEnriched = 0;
-
   for (const { candidate } of holderCandidates) {
     if (client.requestsUsed + 1 + reserve > client.maxRequests) break;
     try {
@@ -151,6 +165,22 @@ export async function runPoll(cfg, state) {
     if ((result.available?.length || 0) < minSignalCoverage) { coverageSuppressed++; continue; }
     scored.push({ candidate, result });
   }
+
+  state.lastScan = {
+    at: startedAt,
+    discovered: candidates.slice(0, 200).map(discoveredRow),
+    scored: explainRows.map(({ candidate, result }) => scanRow(candidate, result)).slice(0, 200),
+    meta: {
+      attempted, succeeded,
+      requests: client.requestsUsed,
+      eventEnriched, holderEnriched,
+      totalDiscovered: candidates.length,
+      totalScored: explainRows.length,
+      scoreQualified,
+      coverageSuppressed,
+      riskFlagged,
+    },
+  };
 
   if (cfg.explain) printExplainReport(explainRows, { threshold: minScore, minSignalCoverage, totalCandidates: candidates.length, apiRequests: client.requestsUsed, eventEnriched, holderEnriched, scoreQualified, coverageSuppressed, riskFlagged });
 
