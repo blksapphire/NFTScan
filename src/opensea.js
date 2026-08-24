@@ -196,6 +196,16 @@ export class OpenSeaClient {
   async getMintEventsByCollection(slug, { after, limit = 200 } = {}) {
     if (!slug) return [];
     const body = await this.get(`/api/v2/events/collection/${encodeURIComponent(slug)}`, { after, event_type: 'mint', limit }, { cache: false, optional: true });
-    return Array.isArray(body?.asset_events) ? body.asset_events : (Array.isArray(body?.events) ? body.events : []);
+    const events = Array.isArray(body?.asset_events) ? body.asset_events : (Array.isArray(body?.events) ? body.events : []);
+    return events.map((event) => {
+      const raw = event?.event_timestamp;
+      if (typeof raw === 'number' && Number.isFinite(raw)) {
+        return { ...event, event_timestamp: new Date(raw * 1000).toISOString() };
+      }
+      if (typeof raw === 'string' && /^\d+(?:\.\d+)?$/.test(raw.trim())) {
+        return { ...event, event_timestamp: new Date(Number(raw) * 1000).toISOString() };
+      }
+      return event;
+    });
   }
 }
