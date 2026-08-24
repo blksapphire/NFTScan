@@ -12,6 +12,7 @@ const EMPTY = {
   recent: [],
   apiKeyExpiresAt: null,
   research: { version: 1, alerts: [], snapshots: [] },
+  lastScan: { at: null, discovered: [], scored: [], meta: {} },
 };
 
 /** Normalize both fresh state and legacy v1 state before any caller touches it. */
@@ -29,6 +30,13 @@ export function normalizeState(parsed = {}) {
       ...(parsed.research ?? {}),
       alerts: Array.isArray(parsed.research?.alerts) ? parsed.research.alerts : [],
       snapshots: Array.isArray(parsed.research?.snapshots) ? parsed.research.snapshots : [],
+    },
+    lastScan: {
+      ...EMPTY.lastScan,
+      ...(parsed.lastScan ?? {}),
+      discovered: Array.isArray(parsed.lastScan?.discovered) ? parsed.lastScan.discovered : [],
+      scored: Array.isArray(parsed.lastScan?.scored) ? parsed.lastScan.scored : [],
+      meta: parsed.lastScan?.meta ?? {},
     },
   };
 }
@@ -53,8 +61,6 @@ export function saveState(file, state) {
 }
 
 export function pruneState(state, dedupeDays, now = Date.now(), researchRetentionDays = 90) {
-  // pruneState is intentionally safe for callers/tests that pass an older
-  // in-memory v1 state directly rather than going through loadState().
   const normalized = normalizeState(state);
   Object.assign(state, normalized);
 
@@ -77,6 +83,8 @@ export function pruneState(state, dedupeDays, now = Date.now(), researchRetentio
     const t = Date.parse(a.at);
     return !Number.isFinite(t) || t >= researchCutoff;
   }).slice(-10000);
+  state.lastScan.scored = Array.isArray(state.lastScan.scored) ? state.lastScan.scored.slice(0, 200) : [];
+  state.lastScan.discovered = Array.isArray(state.lastScan.discovered) ? state.lastScan.discovered.slice(0, 200) : [];
   return removed;
 }
 
