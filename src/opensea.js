@@ -13,6 +13,7 @@
 import { sleep, describeFetchError } from './util.js';
 
 const BASE = 'https://api.opensea.io';
+const ZERO_ADDRESS = '0x0000000000000000000000000000000000000000';
 const MAX_429_WAIT_SECONDS = 25;
 const MAX_RETRIES = 2;
 const REQUEST_TIMEOUT_MS = 15000;
@@ -40,7 +41,8 @@ export class OpenSeaClient {
     this.keyFetchError = null;
     this.keyExpiresAt = null;
     this.cache = new Map();
-    this.lastMintEventDiagnostics = { requests: 0, returned: 0, timestampType: null, recipients: 0 };
+    this.mintEventCache = new Map();
+    this.lastMintEventDiagnostics = { requests: 0, returned: 0, usable: 0, mintLike: 0, timestampType: null, recipients: 0 };
   }
 
   log(...args) {
@@ -193,29 +195,41 @@ export class OpenSeaClient {
     return Array.isArray(body?.holders) ? body.holders : [];
   }
 
-  /** Recent mint events for a collection; poll mode reconstructs demand from these events. */
   async getMintEventsByCollection(slug, { after, limit = 200 } = {}) {
     if (!slug) return [];
-    const body = await this.get(`/api/v2/events/collection/${encodeURIComponent(slug)}`, { after, event_type: 'mint', limit }, { cache: false, optional: true });
-    const events = Array.isArray(body?.asset_events) ? body.asset_events : (Array.isArray(body?.events) ? body.events : []);
-    let timestampType = null;
-    let recipientCount = 0;
-    for (const event of events) {
-      const rawTimestamp = event?.event_timestamp ?? event?.timestamp ?? event?.occurred_at ?? null;
-      if (timestampType === null && rawTimestamp !== null) timestampType = typeof rawTimestamp;
-      if (event?.to_address || event?.to_account?.address || event?.recipient?.address || event?.nft?.owner?.address || event?.nft?.owner) recipientCount++;
-      if (typeof rawTimestamp === 'number' && Number.isFinite(rawTimestamp)) {
-        event.event_timestamp = new Date(rawTimestamp * 1000).toISOString();
-      }
+    const cacheKey = `global-transfer:${after}:${limit}`;
+    let events = this.mintEventCache.get(cacheKey);
+    if (!events) {
+      const body = await this.get('/api/v2/events', { after, event_type: 'transfer', chain: 'ethereum', limit }, { cache: false, optional: true });
+      const rawEvents = Array.isArray(body?.asset_events) ? body.asset_events : (Array.isArray(body?.events) ? body.events : []);
+      events = rawEvents.map((event) => {
+        const rawTimestamp = event?.event_timestamp ?? event?.timestamp ?? event?.occurred_at ?? null;
+        const eventTimestamp = typeof rawTimestamp === 'number' && Number.isFinite(rawTimestamp)
+          ? new Date(rawTimestamp * 1000).toISOString()
+          : rawTimestamp;
+        const from = String(event?.from_address ?? event?.from_account?.address ?? event?.sender?.address ?? '').toLowerCase();
+        const to = String(event?.to_address ?? event?.to_account?.address ?? event?.recipient?.address ?? '').toLowerCase();
+        const collectionSlug = String(event?.collection?.slug ?? event?.item?.collection?.slug ?? event?.nft?.collection?.slug ?? '').toLowerCase();
+        return { ...event, event_timestamp: eventTimestamp, from_address: from, to_address: to, _collectionSlug: collectionSlug };
+      }).filter((event) => event.event_timestamp && event.to_address);
+      this.mintEventCache.set(cacheKey, events);
+
+      const mintLike = events.filter((event) => event.from_address === ZERO_ADDRESS).length;
+      const timestampType = rawEvents.length ? typeof (rawEvents[0]?.event_timestamp ?? rawEvents[0]?.timestamp ?? rawEvents[0]?.occurred_at ?? null) : null;
+      this.lastMintEventDiagnostics = {
+        requests: this.lastMintEventDiagnostics.requests + 1,
+        returned: rawEvents.length,
+        usable: events.length,
+        mintLike,
+        timestampType,
+        recipients: events.length,
+      };
+      this.log(`global transfer feed: returned=${rawEvents.length} usable=${events.length} mintLike=${mintLike} timestampType=${timestampType ?? 'none'}`);
     }
-    this.lastMintEventDiagnostics = {
-      requests: this.lastMintEventDiagnostics.requests + 1,
-      returned: events.length,
-      timestampType,
-      recipients: recipientCount,
-      lastSlug: slug,
-    };
-    this.log(`mint events ${slug}: returned=${events.length} timestampType=${timestampType ?? 'none'} recipients=${recipientCount}`);
-    return events;
+
+    const target = String(slug).toLowerCase();
+    const matched = events.filter((event) => event._collectionSlug === target && event.from_address === ZERO_ADDRESS);
+    this.log(`mint-like events ${slug}: matched=${matched.length} from cached global transfer feed`);
+    return matched;
   }
 }
