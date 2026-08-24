@@ -69,11 +69,15 @@
 
   "retention": {
     "_comment": "Days to remember a contract so you are not alerted twice. Keeps the state file small.",
-    "dedupeDays": 30
+    "dedupeDays": 30,
+    "_comment_outcomes": "Research records last longer than alert dedupe because 1h/6h/24h outcomes need time to mature.",
+    "outcomeDays": 90,
+    "maxOutcomeRecords": 500,
+    "maxObservationsPerOutcome": 24
   },
 
   "budget": {
-    "_comment": "Max OpenSea API requests per poll run. The free tier allows ~600/hour and 5-minute polling means 12 runs/hour, so keep this at or below 45.",
+    "_comment": "Max OpenSea API requests per poll run. The implementation also stops early when the API's response headers say quota is low.",
     "maxRequestsPerRun": 40
   }
 }
