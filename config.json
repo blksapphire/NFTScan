@@ -85,6 +85,6 @@
     "stageOneCandidates": 22,
     "mintEventCandidates": 16,
     "holderCandidates": 4,
-    "mintEventWindowMinutes": 10
+    "mintEventWindowMinutes": 60
   }
 }
