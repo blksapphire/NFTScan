@@ -1,79 +1,83 @@
 {
-  "_comment": "Your screener. Edit this file on GitHub's website and it takes effect on the next run. Nothing here is secret.",
-
+  "_comment": "NFTScan screener configuration. No secrets live here.",
   "chain": "ethereum",
-
+  "chains": ["ethereum"],
   "minScore": 70,
   "maxAlertsPerRun": 6,
-
   "sources": {
     "upcomingDrops": true,
     "recentlyMinted": true,
     "newCollections": true
   },
-
-  "_comment_leadTimes": "Minutes before a mint opens that you want warning. Two-stage: a research heads-up, then a get-ready ping.",
   "leadTimeMinutes": [180, 25],
-
   "freshness": {
-    "_comment": "How new something must be to count as 'early'.",
     "maxDropLeadHours": 168,
     "maxCollectionAgeHours": 72
   },
-
   "hardRejects": {
-    "_comment": "Binary disqualifiers, checked before scoring. Cheap way to kill obvious spam.",
     "requireContractAddress": true,
     "rejectFreeMintsAboveSupply": 10000,
     "maxMintPriceEth": 5,
     "requireStageTimeInFuture": true
   },
-
   "weights": {
-    "_comment": "Must sum to 100. uniqueMinterRatio is the best cheap wash-mint tell, so it carries the most.",
-    "uniqueMinterRatio": 30,
-    "mintVelocity": 20,
-    "contractFreshness": 15,
-    "verification": 15,
-    "priceSanity": 10,
-    "holderConcentration": 10
+    "uniqueMinterRatio": 23,
+    "mintVelocity": 15,
+    "mintAcceleration": 12,
+    "contractFreshness": 12,
+    "verification": 10,
+    "priceSanity": 8,
+    "holderConcentration": 10,
+    "walletQuality": 10
   },
-
+  "confidence": {
+    "minimumMultiplier": 0.55
+  },
   "velocity": {
-    "_comment": "Rolling window used by real-time stream mode to spot a mint going live.",
     "windowMinutes": 10,
     "minMintsToConsider": 12,
-    "minUniqueMinters": 8
+    "minUniqueMinters": 8,
+    "accelerationWindowMinutes": 5
   },
-
   "priceSanity": {
-    "_comment": "Mint prices in ETH that historically correlate with real projects rather than spam or cash-grabs.",
     "idealMinEth": 0.005,
     "idealMaxEth": 0.15,
-    "_comment_decay": "Price at which the price score hits zero. Keep this well below maxMintPriceEth or expensive mints barely lose any points.",
     "decayToZeroEth": 1
   },
-
   "risk": {
-    "_comment": "Deal-breakers. These MULTIPLY the score instead of adding to it, so one bad finding can veto five good ones. Raise a penalty toward 1 to make it milder.",
     "severeTopHolderPct": 50,
-    "severeTopHolderPenalty": 0.45,
+    "severeTopHolderPenalty": 0.35,
     "highTopHolderPct": 30,
-    "highTopHolderPenalty": 0.7,
-    "_comment_bots": "A free mint being claimed faster than this is usually one operator running scripts, not real demand.",
+    "highTopHolderPenalty": 0.65,
     "freeMintBotRatePerMin": 30,
-    "freeMintBotPenalty": 0.75,
+    "freeMintBotPenalty": 0.70,
     "unverifiedPriceEth": 0.5,
-    "unverifiedPricePenalty": 0.7
+    "unverifiedPricePenalty": 0.70,
+    "contractHighRiskScore": 70
   },
-
+  "walletAnalysis": {
+    "enabled": true,
+    "maxFundingSources": 100,
+    "freshWalletHours": 24,
+    "sharedFundingWarningRatio": 0.35
+  },
+  "marketAnalysis": {
+    "enabled": true,
+    "trackOutcomes": true,
+    "outcomeMinutes": [5, 15, 60, 360, 1440]
+  },
+  "research": {
+    "enabled": true,
+    "maxAlerts": 5000,
+    "maxSnapshotsPerAlert": 10,
+    "retentionDays": 90
+  },
   "retention": {
-    "_comment": "Days to remember a contract so you are not alerted twice. Keeps the state file small.",
     "dedupeDays": 30
   },
-
   "budget": {
-    "_comment": "Max OpenSea API requests per poll run. The free tier allows ~600/hour and 5-minute polling means 12 runs/hour, so keep this at or below 45.",
-    "maxRequestsPerRun": 40
+    "maxRequestsPerRun": 40,
+    "reserveRequests": 8,
+    "targetRatePerMinute": 50
   }
 }
