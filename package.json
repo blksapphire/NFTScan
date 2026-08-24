@@ -10,15 +10,17 @@
     "start": "node src/index.js",
     "once": "node src/index.js --once",
     "dry": "node src/index.js --once --dry-run",
+    "setup": "node src/setup.js",
     "stream": "node src/index.js --mode=stream",
     "test:telegram": "node src/index.js --test-telegram",
     "newkey": "node src/index.js --new-key",
     "selftest": "node test/selftest.js",
+    "fulltest": "node test/full-upgrade.js",
     "diagnose": "node test/diagnose.js",
     "research": "node src/research-cli.js",
     "backtest": "node src/research-cli.js report",
     "calibrate": "node src/research-cli.js calibrate",
-    "check": "node --check src/index.js && node --check src/poll.js && node --check src/stream.js && node --check src/score.js && node --check src/research.js && node --check src/research-cli.js && node --check src/wallets.js && node --check src/contractRisk.js && node --check src/market.js"
+    "check": "node --check src/index.js && node --check src/poll.js && node --check src/stream.js && node --check src/score.js && node --check src/research.js && node --check src/research-cli.js && node --check src/wallets.js && node --check src/contractRisk.js && node --check src/market.js && node --check src/setup.js"
   },
   "keywords": ["opensea", "nft", "telegram", "mint", "alerts", "research", "backtesting"],
   "license": "MIT"
