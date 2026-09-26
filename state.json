@@ -1,0 +1,1191 @@
+{
+  "version": 2,
+  "alerted": {
+    "0xfedc1f97387696526ecb4042dc5395f940ba906e|new_collection": "2026-08-28T04:04:09.954Z",
+    "0x99a8c8df01cf793e604c81dce3e95d72ea5048f7|new_collection": "2026-08-28T04:04:10.398Z",
+    "0xe8bf6102c8ebabe61119df2ec2586d257b6950fb|new_collection": "2026-08-28T04:04:10.564Z",
+    "0x8904ee467f8a774afff6805e279ab8750dc3014b|new_collection": "2026-08-28T04:04:10.741Z",
+    "0x3b23c4dfc0032dc04acf0384ffa92057403bd629|new_collection": "2026-08-28T04:04:10.912Z",
+    "0xb737295a94216106bd08d1f1c82b328fe4b45729|new_collection": "2026-08-28T04:04:11.110Z",
+    "0x77759953f1040e62df4a0221c2eef40b46f50e9b|live": "2026-08-29T00:38:47.302Z",
+    "0x8ec1a427be871d6ce2c679c6a1cc22dcece2b918|new_collection": "2026-08-29T00:38:47.612Z",
+    "0xb02b5790a192c141c470fd6389d33c0d289a6550|new_collection": "2026-08-29T00:38:47.740Z",
+    "0x8d82d17f7d376dea26ed6b03258a1e025c742728|new_collection": "2026-08-29T00:38:47.861Z",
+    "0xe466ddfe67b9cf5eaaf1c977d2a462565d856434|new_collection": "2026-08-29T00:38:47.993Z",
+    "0x2e8071a7b2c75ab3168f896f8409d12fdb2163cb|new_collection": "2026-08-29T00:38:48.122Z",
+    "0x2f55091e04a81462c10603e9903106499c4980b9|live": "2026-08-29T07:22:14.245Z",
+    "0x0ab482144db910aabd9fb840cf6c243a22d2719e|new_collection": "2026-08-29T07:22:14.618Z",
+    "0x697e2e48128f80674eae40d23641cd1e0372b925|new_collection": "2026-08-29T07:22:14.767Z",
+    "0xf3ec2dcdf2f655f0aa16670942c76cc88938b4e0|new_collection": "2026-08-29T07:22:14.896Z",
+    "0xdf010801ca50f696c15090fbe202bd091c83d380|new_collection": "2026-08-29T07:22:15.044Z",
+    "0xc3ac0662afd26960996f6dd61c0735351fc4d041|new_collection": "2026-08-29T07:22:15.180Z",
+    "0xe9a135f32053689532b21b4ecc6b9810b48c5a65|new_collection": "2026-08-29T13:14:11.086Z",
+    "0x4d5ce907d655ef371ad38e6542ca7f5aab3d65fc|new_collection": "2026-08-29T13:14:11.511Z",
+    "0xcff6d4e4dece9996daab4b461dda33319af41cee|new_collection": "2026-08-29T17:10:01.702Z",
+    "0xf0c0ae0e4f1a51248a7548dfd47bf99edf642d34|new_collection": "2026-08-29T17:10:02.118Z",
+    "0xed5c247c5ed6f6238c04d2c850853aecb58444a9|live": "2026-08-29T17:10:02.281Z",
+    "0xdb5a55b6b9f471498e8b0a61bc3011f49cace8f6|new_collection": "2026-08-30T05:13:03.124Z",
+    "0x905f122234631fd7251c9f8b37508cf8eb2ca2c3|new_collection": "2026-08-30T05:13:03.614Z",
+    "0xe01dfd8086e3fc116dddea02a0cd2f38ef420246|new_collection": "2026-08-30T05:13:03.783Z",
+    "0x5ff1a73dad591ccc575ebd4f8c2998f7614ee4a2|new_collection": "2026-08-30T05:13:03.961Z",
+    "0xac26b48bab691aa0468e6bf76c354f7c9daa55fa|new_collection": "2026-08-30T05:13:04.139Z",
+    "0x42063444b4c9580a01aa8f8927f9b40e082a98fb|new_collection": "2026-08-30T05:13:04.320Z",
+    "0x7921fef6e55cec546098baccc404c0e25fdbf8da|new_collection": "2026-08-31T01:35:26.865Z",
+    "0x90395cdd67e8b3205d0f9024590e90b8183f3c05|new_collection": "2026-08-31T01:35:27.255Z",
+    "0x49caed53b825b4b17a7e78660bdf5efc6771aa5c|new_collection": "2026-08-31T01:35:27.396Z",
+    "0xe03e59c381d22e595f865dbd1d39c60acaa62c6b|new_collection": "2026-08-31T01:35:27.553Z",
+    "0x1e164f3089a09882a114a2b668742b59b373af41|new_collection": "2026-08-31T01:35:27.706Z",
+    "0x56c2ad29af9468a5b4f0fef671c3c88d67b3190f|new_collection": "2026-08-31T01:35:27.873Z",
+    "0xec856c17d0a5b16a69963e8821a298f929f8a181|new_collection": "2026-08-31T07:36:14.912Z",
+    "0x2a0fc02cbd7a04b6d650775099eda3d2dd782b49|new_collection": "2026-08-31T07:36:15.237Z",
+    "0x019e459799fc212d460dbe6f2ead6a11a3fccb9d|new_collection": "2026-08-31T07:36:15.397Z",
+    "0x75bb5c66ca19183abf18d4f8ad6a80a8d0101ead|new_collection": "2026-08-31T07:36:15.544Z",
+    "0xd5213df7ed0b6279cdbc9a195d40ebb2ef317663|new_collection": "2026-08-31T07:36:15.703Z",
+    "0xeea6f6aed11e2cbb72526d70e474746c8a9f51f8|new_collection": "2026-08-31T07:36:15.873Z",
+    "0x22faab822e6c8d7493906d26b94d68d1e81e05de|new_collection": "2026-08-31T15:24:41.946Z",
+    "0xd0765e6b0277f6d94d483460f2b22c65db4e092a|new_collection": "2026-09-01T05:23:44.348Z",
+    "0x759a1e686ae66dea6b969265fee5956391683692|new_collection": "2026-09-01T05:23:44.703Z",
+    "0x352fc355fb7c0d1b63327160b9de22e85878230a|new_collection": "2026-09-01T05:23:44.831Z",
+    "0x9cdd9f45cf1132d9b94b755d631afae752cee183|new_collection": "2026-09-01T05:23:44.960Z",
+    "0xcb7902f29b2268ebac58babeb80badc119e38999|new_collection": "2026-09-01T05:23:45.131Z",
+    "0x1464fa27b84450d9f070dbd64235957144a301fc|new_collection": "2026-09-01T05:23:45.262Z",
+    "0x2d7fff8dfc90e2593167d46966fdfcb00251b485|live": "2026-09-01T18:14:41.970Z",
+    "0xc3a7ffb0094fc7171520d49c79abfa16ea70d216|new_collection": "2026-09-02T01:04:29.638Z",
+    "0x5132fa6e37a1cf9c4a72c0dfaeac113fed44101a|new_collection": "2026-09-02T01:04:30.101Z",
+    "0xad763ee52465c84afc1fd9d97ba8e5057342989a|new_collection": "2026-09-02T01:04:30.276Z",
+    "0xbd106b4a45e75e1202a4939cc91b7e495f6e9087|new_collection": "2026-09-02T01:04:30.442Z",
+    "0xd7bbb0ffbb490382ee7c9454a59188b91e38f95c|new_collection": "2026-09-02T01:04:30.619Z",
+    "0xbb8a285206146c32c66572dbc4f78dc30ff7d927|new_collection": "2026-09-02T01:04:30.788Z",
+    "0x8d54d89705887e712437402edc68cd3eb7910afc|new_collection": "2026-09-02T05:43:28.115Z",
+    "0x565aa4ffb0ffe114ff45e8808745aa789148e609|new_collection": "2026-09-02T05:43:28.580Z",
+    "0xbc62ae2fc572f370304fbd80425414d7c17b62b9|new_collection": "2026-09-02T05:43:28.771Z",
+    "0xa02381d6dea3057ea4dc1ff3a5a05adc09d76668|new_collection": "2026-09-02T05:43:28.944Z",
+    "0xf79d69e8d22dd42219a2ff86cc5e9aa9d24efafa|new_collection": "2026-09-02T05:43:29.135Z",
+    "0x614b2ebe0a74ee861e9b3cdc17caa360deae0b77|new_collection": "2026-09-02T05:43:29.311Z",
+    "0x50bffe9e65281a9ca84b114222f5788b658c825f|upcoming-180": "2026-09-02T14:04:16.292Z",
+    "0xcc91815a7727d8a9ed1fbd86bc562ce27b23519a|upcoming-180": "2026-09-02T14:04:16.598Z",
+    "0x1df605b0739f8e72e4da1145013740ec189d043f|new_collection": "2026-09-02T14:04:16.742Z",
+    "0x50bffe9e65281a9ca84b114222f5788b658c825f|live": "2026-09-02T20:09:27.632Z",
+    "0x2e2bede10b688033ed58efcf5443774887ef0839|live": "2026-09-02T20:09:27.975Z",
+    "0x5798fb5e4e81060a969d12c7b612381946230ef5|new_collection": "2026-09-03T00:38:42.365Z",
+    "0xa088e40e66aa1f8ef7ea3ae523ecf85b451d93f9|new_collection": "2026-09-03T00:38:42.698Z",
+    "0x418d6afae62eaf55abc47d48740bcf3ed6f5f5e6|new_collection": "2026-09-03T00:38:42.860Z",
+    "0xd27d648304abf53b8c3d02410c264b6a3e5bdc01|new_collection": "2026-09-03T00:38:42.984Z",
+    "0x5d33b6d05260769fb5fdfdb6b9fda42bf67b8418|new_collection": "2026-09-03T00:38:43.130Z",
+    "0xd91af4d3f155a2d7d7af99e47425ed877cdea05d|new_collection": "2026-09-03T00:38:43.256Z",
+    "0x3d18d2add5205d16b67c21894d829ddb6ce2a01d|new_collection": "2026-09-03T05:02:49.875Z",
+    "0xd78b05f505e29b5ec991e26d117f23e7d5f6c488|new_collection": "2026-09-03T05:02:50.266Z",
+    "0x909c37289403b8f8963f0e11a7ae56b4b616d0ba|new_collection": "2026-09-03T05:02:50.406Z",
+    "0x31ae9c33fd0351c22f84ed92cf4304ca1ec82ee7|new_collection": "2026-09-03T05:02:50.548Z",
+    "0x89182c2350144293e3756b586756f084fc8208ab|new_collection": "2026-09-03T05:02:50.694Z",
+    "0x60e9d731e5264bc9169ac98e458a6e865eb9fb0c|new_collection": "2026-09-03T05:02:50.838Z",
+    "0x78969ee067da98f9e9ce23c46ff67818a5a7d756|upcoming-180": "2026-09-03T13:52:31.285Z"
+  },
+  "telegramOffset": 412985454,
+  "overrides": {
+    "minScore": 10
+  },
+  "stats": {
+    "runs": 305,
+    "alertsSent": 282,
+    "lastRunAt": "2026-09-26T15:07:55.834Z",
+    "lastAlertAt": "2026-09-03T13:52:31.285Z"
+  },
+  "recent": [
+    {
+      "name": "Royal Pains",
+      "kind": "upcoming",
+      "score": 56,
+      "contractAddress": "0x78969ee067da98f9e9ce23c46ff67818a5a7d756",
+      "openseaUrl": "https://opensea.io/collection/royal-pains",
+      "at": "2026-09-03T13:52:31.285Z"
+    },
+    {
+      "name": "0x60e9d731e5264bc9169ac98e458a6e865eb9fb0c",
+      "kind": "new_collection",
+      "score": 42,
+      "contractAddress": "0x60e9d731e5264bc9169ac98e458a6e865eb9fb0c",
+      "openseaUrl": "https://opensea.io/collection/0x60e9d731e5264bc9169ac98e458a6e865eb9fb0c",
+      "at": "2026-09-03T05:02:50.838Z"
+    },
+    {
+      "name": "0x89182c2350144293e3756b586756f084fc8208ab",
+      "kind": "new_collection",
+      "score": 42,
+      "contractAddress": "0x89182c2350144293e3756b586756f084fc8208ab",
+      "openseaUrl": "https://opensea.io/collection/0x89182c2350144293e3756b586756f084fc8208ab",
+      "at": "2026-09-03T05:02:50.694Z"
+    },
+    {
+      "name": "0x31ae9c33fd0351c22f84ed92cf4304ca1ec82ee7",
+      "kind": "new_collection",
+      "score": 42,
+      "contractAddress": "0x31ae9c33fd0351c22f84ed92cf4304ca1ec82ee7",
+      "openseaUrl": "https://opensea.io/collection/0x31ae9c33fd0351c22f84ed92cf4304ca1ec82ee7",
+      "at": "2026-09-03T05:02:50.548Z"
+    },
+    {
+      "name": "0x909c37289403b8f8963f0e11a7ae56b4b616d0ba",
+      "kind": "new_collection",
+      "score": 42,
+      "contractAddress": "0x909c37289403b8f8963f0e11a7ae56b4b616d0ba",
+      "openseaUrl": "https://opensea.io/collection/0x909c37289403b8f8963f0e11a7ae56b4b616d0ba",
+      "at": "2026-09-03T05:02:50.406Z"
+    },
+    {
+      "name": "0xd78b05f505e29b5ec991e26d117f23e7d5f6c488",
+      "kind": "new_collection",
+      "score": 42,
+      "contractAddress": "0xd78b05f505e29b5ec991e26d117f23e7d5f6c488",
+      "openseaUrl": "https://opensea.io/collection/0xd78b05f505e29b5ec991e26d117f23e7d5f6c488",
+      "at": "2026-09-03T05:02:50.266Z"
+    },
+    {
+      "name": "0x3d18d2add5205d16b67c21894d829ddb6ce2a01d",
+      "kind": "new_collection",
+      "score": 42,
+      "contractAddress": "0x3d18d2add5205d16b67c21894d829ddb6ce2a01d",
+      "openseaUrl": "https://opensea.io/collection/0x3d18d2add5205d16b67c21894d829ddb6ce2a01d",
+      "at": "2026-09-03T05:02:49.875Z"
+    },
+    {
+      "name": "0xd91af4d3f155a2d7d7af99e47425ed877cdea05d",
+      "kind": "new_collection",
+      "score": 45,
+      "contractAddress": "0xd91af4d3f155a2d7d7af99e47425ed877cdea05d",
+      "openseaUrl": "https://opensea.io/collection/0xd91af4d3f155a2d7d7af99e47425ed877cdea05d",
+      "at": "2026-09-03T00:38:43.256Z"
+    },
+    {
+      "name": "0x5d33b6d05260769fb5fdfdb6b9fda42bf67b8418",
+      "kind": "new_collection",
+      "score": 45,
+      "contractAddress": "0x5d33b6d05260769fb5fdfdb6b9fda42bf67b8418",
+      "openseaUrl": "https://opensea.io/collection/0x5d33b6d05260769fb5fdfdb6b9fda42bf67b8418",
+      "at": "2026-09-03T00:38:43.130Z"
+    },
+    {
+      "name": "0xd27d648304abf53b8c3d02410c264b6a3e5bdc01",
+      "kind": "new_collection",
+      "score": 45,
+      "contractAddress": "0xd27d648304abf53b8c3d02410c264b6a3e5bdc01",
+      "openseaUrl": "https://opensea.io/collection/0xd27d648304abf53b8c3d02410c264b6a3e5bdc01",
+      "at": "2026-09-03T00:38:42.984Z"
+    },
+    {
+      "name": "0x418d6afae62eaf55abc47d48740bcf3ed6f5f5e6",
+      "kind": "new_collection",
+      "score": 45,
+      "contractAddress": "0x418d6afae62eaf55abc47d48740bcf3ed6f5f5e6",
+      "openseaUrl": "https://opensea.io/collection/0x418d6afae62eaf55abc47d48740bcf3ed6f5f5e6",
+      "at": "2026-09-03T00:38:42.860Z"
+    },
+    {
+      "name": "0xa088e40e66aa1f8ef7ea3ae523ecf85b451d93f9",
+      "kind": "new_collection",
+      "score": 45,
+      "contractAddress": "0xa088e40e66aa1f8ef7ea3ae523ecf85b451d93f9",
+      "openseaUrl": "https://opensea.io/collection/0xa088e40e66aa1f8ef7ea3ae523ecf85b451d93f9",
+      "at": "2026-09-03T00:38:42.698Z"
+    },
+    {
+      "name": "0x5798fb5e4e81060a969d12c7b612381946230ef5",
+      "kind": "new_collection",
+      "score": 45,
+      "contractAddress": "0x5798fb5e4e81060a969d12c7b612381946230ef5",
+      "openseaUrl": "https://opensea.io/collection/0x5798fb5e4e81060a969d12c7b612381946230ef5",
+      "at": "2026-09-03T00:38:42.365Z"
+    },
+    {
+      "name": "The Seven Houses",
+      "kind": "live",
+      "score": 49,
+      "contractAddress": "0x2e2bede10b688033ed58efcf5443774887ef0839",
+      "openseaUrl": "https://opensea.io/collection/thesevenhouses",
+      "at": "2026-09-02T20:09:27.975Z"
+    },
+    {
+      "name": "Banger Bots",
+      "kind": "live",
+      "score": 54,
+      "contractAddress": "0x50bffe9e65281a9ca84b114222f5788b658c825f",
+      "openseaUrl": "https://opensea.io/collection/banger-bots",
+      "at": "2026-09-02T20:09:27.632Z"
+    },
+    {
+      "name": "PunkFighters",
+      "kind": "new_collection",
+      "score": 42,
+      "contractAddress": "0x1df605b0739f8e72e4da1145013740ec189d043f",
+      "openseaUrl": "https://opensea.io/collection/punkfighterscrypto",
+      "at": "2026-09-02T14:04:16.742Z"
+    },
+    {
+      "name": "The Odyssey: Siren Song",
+      "kind": "upcoming",
+      "score": 56,
+      "contractAddress": "0xcc91815a7727d8a9ed1fbd86bc562ce27b23519a",
+      "openseaUrl": "https://opensea.io/collection/siren-song-649652985",
+      "at": "2026-09-02T14:04:16.598Z"
+    },
+    {
+      "name": "Banger Bots",
+      "kind": "upcoming",
+      "score": 61,
+      "contractAddress": "0x50bffe9e65281a9ca84b114222f5788b658c825f",
+      "openseaUrl": "https://opensea.io/collection/banger-bots",
+      "at": "2026-09-02T14:04:16.292Z"
+    },
+    {
+      "name": "Pistacio NFT",
+      "kind": "new_collection",
+      "score": 42,
+      "contractAddress": "0x614b2ebe0a74ee861e9b3cdc17caa360deae0b77",
+      "openseaUrl": "https://opensea.io/collection/pistacio-nft",
+      "at": "2026-09-02T05:43:29.311Z"
+    },
+    {
+      "name": "0xf79d69e8d22dd42219a2ff86cc5e9aa9d24efafa",
+      "kind": "new_collection",
+      "score": 42,
+      "contractAddress": "0xf79d69e8d22dd42219a2ff86cc5e9aa9d24efafa",
+      "openseaUrl": "https://opensea.io/collection/0xf79d69e8d22dd42219a2ff86cc5e9aa9d24efafa",
+      "at": "2026-09-02T05:43:29.135Z"
+    },
+    {
+      "name": "0xa02381d6dea3057ea4dc1ff3a5a05adc09d76668",
+      "kind": "new_collection",
+      "score": 42,
+      "contractAddress": "0xa02381d6dea3057ea4dc1ff3a5a05adc09d76668",
+      "openseaUrl": "https://opensea.io/collection/0xa02381d6dea3057ea4dc1ff3a5a05adc09d76668",
+      "at": "2026-09-02T05:43:28.944Z"
+    },
+    {
+      "name": "Anon ERC1155 Receipt",
+      "kind": "new_collection",
+      "score": 42,
+      "contractAddress": "0xbc62ae2fc572f370304fbd80425414d7c17b62b9",
+      "openseaUrl": "https://opensea.io/collection/anon-erc1155-receipt-622892273",
+      "at": "2026-09-02T05:43:28.771Z"
+    },
+    {
+      "name": "La Peace",
+      "kind": "new_collection",
+      "score": 42,
+      "contractAddress": "0x565aa4ffb0ffe114ff45e8808745aa789148e609",
+      "openseaUrl": "https://opensea.io/collection/la-peace-663041874",
+      "at": "2026-09-02T05:43:28.580Z"
+    },
+    {
+      "name": "Pigeon Ponders Peoples Pointless Problems",
+      "kind": "new_collection",
+      "score": 47,
+      "contractAddress": "0x8d54d89705887e712437402edc68cd3eb7910afc",
+      "openseaUrl": "https://opensea.io/collection/pigeon-ponders",
+      "at": "2026-09-02T05:43:28.115Z"
+    },
+    {
+      "name": "0xbb8a285206146c32c66572dbc4f78dc30ff7d927",
+      "kind": "new_collection",
+      "score": 44,
+      "contractAddress": "0xbb8a285206146c32c66572dbc4f78dc30ff7d927",
+      "openseaUrl": "https://opensea.io/collection/0xbb8a285206146c32c66572dbc4f78dc30ff7d927",
+      "at": "2026-09-02T01:04:30.788Z"
+    }
+  ],
+  "apiKeyExpiresAt": null,
+  "research": {
+    "version": 1,
+    "alerts": [],
+    "snapshots": [],
+    "lastScan": {
+      "at": "2026-09-26T15:07:55.834Z",
+      "discovered": [
+        {
+          "name": "The Doomed Machine",
+          "kind": "live",
+          "source": "drops:upcoming",
+          "contractAddress": "0x996f17abede0b06bf2a30e95c748f376b1fe0aa2",
+          "slug": "the-doomed-machine",
+          "chain": "ethereum"
+        },
+        {
+          "name": "Koi No Yokan",
+          "kind": "live",
+          "source": "drops:minting",
+          "contractAddress": "0x4fbb1325584e24e199d467b7217dc5944581bac0",
+          "slug": "koi-no-yokan",
+          "chain": "ethereum"
+        },
+        {
+          "name": "FLORES",
+          "kind": "live",
+          "source": "drops:minting",
+          "contractAddress": "0x3c0f4f965c837cf2f2512461e5c6b256b4c8286e",
+          "slug": "flores-by-jimena",
+          "chain": "ethereum"
+        },
+        {
+          "name": "The Isle of the 0xdead",
+          "kind": "live",
+          "source": "drops:minting",
+          "contractAddress": "0x33bcd6fcef6014511a821ef84808937e120c2a3e",
+          "slug": "isleofthe0xdead",
+          "chain": "ethereum"
+        },
+        {
+          "name": "N3W YORKERS // By MLow",
+          "kind": "live",
+          "source": "drops:minting",
+          "contractAddress": "0x3386e98e3835d25f20e9a4e2c0bbb9859fedc9c4",
+          "slug": "newyorkers",
+          "chain": "ethereum"
+        },
+        {
+          "name": "JPEG Frens",
+          "kind": "live",
+          "source": "drops:upcoming",
+          "contractAddress": "0xe31703379e32cad7502a594a854a76f9bb0be0e5",
+          "slug": "jpeg-frens",
+          "chain": "ethereum"
+        },
+        {
+          "name": "PUNK OPERATORS",
+          "kind": "live",
+          "source": "drops:minting",
+          "contractAddress": "0xc8753d17826750473e14f1163b602780da514053",
+          "slug": "punk-operators-pko",
+          "chain": "ethereum"
+        },
+        {
+          "name": "Facets",
+          "kind": "live",
+          "source": "drops:minting",
+          "contractAddress": "0xa219558e037063879315d6c0dc37aa29e1ed9f07",
+          "slug": "facetsart",
+          "chain": "ethereum"
+        },
+        {
+          "name": "Royal Pains",
+          "kind": "live",
+          "source": "drops:minting",
+          "contractAddress": "0x78969ee067da98f9e9ce23c46ff67818a5a7d756",
+          "slug": "royal-pains",
+          "chain": "ethereum"
+        },
+        {
+          "name": "Moon Over Easy",
+          "kind": "live",
+          "source": "drops:upcoming",
+          "contractAddress": "0xfd492859cc88d41a6526bd98fc909885201cfe76",
+          "slug": "moon-over-easy",
+          "chain": "ethereum"
+        },
+        {
+          "name": "Round Two",
+          "kind": "live",
+          "source": "drops:minting",
+          "contractAddress": "0x8c1aba96cc700df56d492f302ab19213e478cd37",
+          "slug": "round-two-170093942",
+          "chain": "ethereum"
+        },
+        {
+          "name": "Magic Caps",
+          "kind": "live",
+          "source": "drops:minting",
+          "contractAddress": "0x23d662e8435f78c5bf26e6b404795e0e25229537",
+          "slug": "magic-caps-509129627",
+          "chain": "ethereum"
+        },
+        {
+          "name": "Hard Headed",
+          "kind": "live",
+          "source": "drops:minting",
+          "contractAddress": "0x48e6c5455608127c653846eadf807ef0ede6f882",
+          "slug": "hard-headed",
+          "chain": "ethereum"
+        },
+        {
+          "name": "Serpentine Mythos",
+          "kind": "live",
+          "source": "drops:minting",
+          "contractAddress": "0x249812e175da03c86422579593df118ef735da3d",
+          "slug": "serpentine-mythos",
+          "chain": "ethereum"
+        },
+        {
+          "name": "Interstellar Inn",
+          "kind": "live",
+          "source": "drops:minting",
+          "contractAddress": "0xe9a135f32053689532b21b4ecc6b9810b48c5a65",
+          "slug": "interstellar-inn",
+          "chain": "ethereum"
+        },
+        {
+          "name": "Cyclops: Knock Knock!",
+          "kind": "live",
+          "source": "drops:upcoming",
+          "contractAddress": "0x22faab822e6c8d7493906d26b94d68d1e81e05de",
+          "slug": "knock-knock-209987659",
+          "chain": "ethereum"
+        },
+        {
+          "name": "The Odyssey: Monster Crush",
+          "kind": "live",
+          "source": "drops:minting",
+          "contractAddress": "0x479ddeaf47fdb26ce874a9d5d1dae3d17803b9e9",
+          "slug": "monster-crush",
+          "chain": "ethereum"
+        },
+        {
+          "name": "2o1 Patrons",
+          "kind": "live",
+          "source": "drops:upcoming",
+          "contractAddress": "0xe3af4514109447b910e614ded11a7e452d2a0234",
+          "slug": "2o1-patrons",
+          "chain": "ethereum"
+        },
+        {
+          "name": "Quantum Echoes",
+          "kind": "live",
+          "source": "drops:upcoming",
+          "contractAddress": "0x5a5c9c3cd186d95eff4da56ce48a173c7e46455a",
+          "slug": "qft-quantum-echoes",
+          "chain": "ethereum"
+        },
+        {
+          "name": "Bloom by Darbles",
+          "kind": "live",
+          "source": "drops:upcoming",
+          "contractAddress": "0x5ac09f1ce2a3be5dfc5d92a7b47dbe8f7d22b5b6",
+          "slug": "bloombydarbles",
+          "chain": "ethereum"
+        },
+        {
+          "name": "The Odyssey: Siren Song",
+          "kind": "live",
+          "source": "drops:upcoming",
+          "contractAddress": "0xcc91815a7727d8a9ed1fbd86bc562ce27b23519a",
+          "slug": "siren-song-649652985",
+          "chain": "ethereum"
+        },
+        {
+          "name": "OK Poodles",
+          "kind": "live",
+          "source": "drops:upcoming",
+          "contractAddress": "0x3c87e850aa882399830b78f52454d16b76c21001",
+          "slug": "ok-poodles",
+          "chain": "ethereum"
+        },
+        {
+          "name": "Low Quality Cats",
+          "kind": "live",
+          "source": "drops:upcoming",
+          "contractAddress": "0x55afd2187d7c312bf7e4ca7393a139df19f1f096",
+          "slug": "low-quality-cats",
+          "chain": "ethereum"
+        },
+        {
+          "name": "Nouveau-less",
+          "kind": "new_collection",
+          "source": "collections:created_date",
+          "contractAddress": "0xe1338bcdb67e18fffe82fe7177b74d43ecd84e2f",
+          "slug": "nouveau-less",
+          "chain": "ethereum"
+        },
+        {
+          "name": "JPYdf - DToken testdUSDC",
+          "kind": "new_collection",
+          "source": "collections:created_date",
+          "contractAddress": "0xbfc38c9c797a9c630a5f4e2cb069de4fababadc7",
+          "slug": "jpydf-dtoken-testdusdc",
+          "chain": "ethereum"
+        },
+        {
+          "name": "JPYdf - DToken testdwstETH",
+          "kind": "new_collection",
+          "source": "collections:created_date",
+          "contractAddress": "0xb9aea1cc156f2c080796ae17f4942e0a90ae0295",
+          "slug": "jpydf-dtoken-testdwsteth",
+          "chain": "ethereum"
+        },
+        {
+          "name": "ABIT NFT",
+          "kind": "new_collection",
+          "source": "collections:created_date",
+          "contractAddress": "0x154af24b11db2d3eaa83f6a41c3981b99dcdcef9",
+          "slug": "abit-nft-261624376",
+          "chain": "ethereum"
+        },
+        {
+          "name": "NodeLoc Subnames",
+          "kind": "new_collection",
+          "source": "collections:created_date",
+          "contractAddress": "0x1d936809ca278bacabf15dbcb94114cfd971c316",
+          "slug": "nodeloc-subnames",
+          "chain": "ethereum"
+        },
+        {
+          "name": "ARS AMANDI",
+          "kind": "new_collection",
+          "source": "collections:created_date",
+          "contractAddress": "0xec0e2d470bcfb03c39999f849de578f1806cde08",
+          "slug": "ars-amandi",
+          "chain": "ethereum"
+        },
+        {
+          "name": "DeFiGnition",
+          "kind": "new_collection",
+          "source": "collections:created_date",
+          "contractAddress": "0xd41d8f6efb329ad4bcf52a3cd6295fe6d942c0b3",
+          "slug": "defignition-594386469",
+          "chain": "ethereum"
+        },
+        {
+          "name": "MUXI2",
+          "kind": "new_collection",
+          "source": "collections:created_date",
+          "contractAddress": "0x444c434382909a7d3ec5cafb11275cd329c3258c",
+          "slug": "mu-xi2",
+          "chain": "ethereum"
+        },
+        {
+          "name": "Casper",
+          "kind": "new_collection",
+          "source": "collections:created_date",
+          "contractAddress": "0x283c65cca8c67cf69eea2b573475c7d1719db1b8",
+          "slug": "casper-576756476",
+          "chain": "ethereum"
+        },
+        {
+          "name": "ABIT NFT",
+          "kind": "new_collection",
+          "source": "collections:created_date",
+          "contractAddress": "0xb29c199dbcf030ceacb91d16f3b992a486066149",
+          "slug": "abit-nft",
+          "chain": "ethereum"
+        },
+        {
+          "name": "Colorrituals",
+          "kind": "new_collection",
+          "source": "collections:created_date",
+          "contractAddress": "0x7789fbcf349ed965b1f252b1315f006104dadedc",
+          "slug": "colorrituals",
+          "chain": "ethereum"
+        },
+        {
+          "name": "jessi",
+          "kind": "new_collection",
+          "source": "collections:created_date",
+          "contractAddress": "0x002a68ffaff1f5de0a7299f6d438b3d28525e422",
+          "slug": "jessi-90686730",
+          "chain": "ethereum"
+        },
+        {
+          "name": "8-Bit ETH",
+          "kind": "new_collection",
+          "source": "collections:created_date",
+          "contractAddress": "0xd3bcb6b82ec311d6b7603089a235fb66c7f98dc9",
+          "slug": "8-bit-eth",
+          "chain": "ethereum"
+        },
+        {
+          "name": "Bloxology Payments Accepted Here Official",
+          "kind": "new_collection",
+          "source": "collections:created_date",
+          "contractAddress": "0x4d2c4e576f7a5194b15e4861738755b038c365ee",
+          "slug": "bloxology-payments-accepted-here-official",
+          "chain": "ethereum"
+        },
+        {
+          "name": "eth20",
+          "kind": "new_collection",
+          "source": "collections:created_date",
+          "contractAddress": "0x64ed14e174326da782116bfc0a2d1f55ad7a87c5",
+          "slug": "eth20-925465848",
+          "chain": "ethereum"
+        },
+        {
+          "name": "Cati",
+          "kind": "new_collection",
+          "source": "collections:created_date",
+          "contractAddress": "0x16442a18b9fefa922d842b7ac60f757f9690fa6f",
+          "slug": "cati-431958321",
+          "chain": "ethereum"
+        },
+        {
+          "name": "Cyber Throne",
+          "kind": "new_collection",
+          "source": "collections:created_date",
+          "contractAddress": "0xeb12c260cce67ca274fc6c521148dc9f58a91a8b",
+          "slug": "cyber-throne-188193161",
+          "chain": "ethereum"
+        },
+        {
+          "name": "0xf93556fc19954e2d382da382b0dd0c27148297a2",
+          "kind": "new_collection",
+          "source": "collections:created_date",
+          "contractAddress": "0xf93556fc19954e2d382da382b0dd0c27148297a2",
+          "slug": "0xf93556fc19954e2d382da382b0dd0c27148297a2",
+          "chain": "ethereum"
+        },
+        {
+          "name": "0x35756b30864f91a59e720f7268280fa1b1828059",
+          "kind": "new_collection",
+          "source": "collections:created_date",
+          "contractAddress": "0x35756b30864f91a59e720f7268280fa1b1828059",
+          "slug": "0x35756b30864f91a59e720f7268280fa1b1828059",
+          "chain": "ethereum"
+        },
+        {
+          "name": "0x1deaa3cd37c1b42fa506122df59661ea928cb6f0",
+          "kind": "new_collection",
+          "source": "collections:created_date",
+          "contractAddress": "0x1deaa3cd37c1b42fa506122df59661ea928cb6f0",
+          "slug": "0x1deaa3cd37c1b42fa506122df59661ea928cb6f0",
+          "chain": "ethereum"
+        },
+        {
+          "name": "Alter Ego",
+          "kind": "new_collection",
+          "source": "collections:created_date",
+          "contractAddress": "0x54a100e3bb076af1230177e81b5b3ea544755a0e",
+          "slug": "alter-ego-91024460",
+          "chain": "ethereum"
+        },
+        {
+          "name": "lenses worshiping lenses",
+          "kind": "new_collection",
+          "source": "collections:created_date",
+          "contractAddress": "0x75da12931c7dd2893c0dde28b9b30225b23700bf",
+          "slug": "lenses-worshiping-lenses",
+          "chain": "ethereum"
+        },
+        {
+          "name": "0x6fe36e440965b614d3d08aef678cf250f882a9d3",
+          "kind": "new_collection",
+          "source": "collections:created_date",
+          "contractAddress": "0x6fe36e440965b614d3d08aef678cf250f882a9d3",
+          "slug": "0x6fe36e440965b614d3d08aef678cf250f882a9d3",
+          "chain": "ethereum"
+        },
+        {
+          "name": "0xb2dceab198aa34d946ca72c07ee94b18b84a856b",
+          "kind": "new_collection",
+          "source": "collections:created_date",
+          "contractAddress": "0xb2dceab198aa34d946ca72c07ee94b18b84a856b",
+          "slug": "0xb2dceab198aa34d946ca72c07ee94b18b84a856b",
+          "chain": "ethereum"
+        },
+        {
+          "name": "0x4d6c1cd3e93caca4c5dd0ee06c707e6db3bc942c",
+          "kind": "new_collection",
+          "source": "collections:created_date",
+          "contractAddress": "0x4d6c1cd3e93caca4c5dd0ee06c707e6db3bc942c",
+          "slug": "0x4d6c1cd3e93caca4c5dd0ee06c707e6db3bc942c",
+          "chain": "ethereum"
+        },
+        {
+          "name": "Burdur Stone Art",
+          "kind": "new_collection",
+          "source": "collections:created_date",
+          "contractAddress": "0xf5e3fa24d6040451795b73fda3521dcc5b2e5f86",
+          "slug": "burdur-stone-art",
+          "chain": "ethereum"
+        },
+        {
+          "name": "Lina Morgana: An Extraordinary Act of Kindness",
+          "kind": "new_collection",
+          "source": "collections:created_date",
+          "contractAddress": "0xadabc5b190471ba48798e265d7964c7ce81a5331",
+          "slug": "lina-morgana-an-extraordinary-act-of-kindness",
+          "chain": "ethereum"
+        },
+        {
+          "name": "Form",
+          "kind": "new_collection",
+          "source": "collections:created_date",
+          "contractAddress": "0x4a9fb45b56ef8140814fd980d7fda8edd1ae392b",
+          "slug": "form-929690685",
+          "chain": "ethereum"
+        },
+        {
+          "name": "water drops.",
+          "kind": "new_collection",
+          "source": "collections:created_date",
+          "contractAddress": "0x2eba0807be4af25c438ec0087109d54427e404a6",
+          "slug": "water-drops-643642797",
+          "chain": "ethereum"
+        },
+        {
+          "name": "Velatura",
+          "kind": "new_collection",
+          "source": "collections:created_date",
+          "contractAddress": "0x12b57dcd375ce6f39b9b54432fb079287e43d40a",
+          "slug": "velatura-290124955",
+          "chain": "ethereum"
+        },
+        {
+          "name": "RED//ERROR",
+          "kind": "new_collection",
+          "source": "collections:created_date",
+          "contractAddress": "0x3400a5051f06222e2d7fa8bfc5a0d0467742b725",
+          "slug": "red-error",
+          "chain": "ethereum"
+        },
+        {
+          "name": "PASTAS TEMPLE V.2 Patron Edition",
+          "kind": "new_collection",
+          "source": "collections:created_date",
+          "contractAddress": "0x9d3e78d7abbba41ada0d6dae7b0464e7af83621c",
+          "slug": "pastas-temple-v-2-patron-edition",
+          "chain": "ethereum"
+        },
+        {
+          "name": "ColorFuel: Codex",
+          "kind": "new_collection",
+          "source": "collections:created_date",
+          "contractAddress": "0x8189ab0f1cfc5bf4425a878a632eb7690255db54",
+          "slug": "colorfuel-codex",
+          "chain": "ethereum"
+        },
+        {
+          "name": "Webber v2",
+          "kind": "new_collection",
+          "source": "collections:created_date",
+          "contractAddress": "0xd91c44df6c939e4f3394d08922f7ca7badbde34d",
+          "slug": "webber-v2",
+          "chain": "ethereum"
+        },
+        {
+          "name": "Creditmon",
+          "kind": "new_collection",
+          "source": "collections:created_date",
+          "contractAddress": "0x9e8199d91aa73a70b75db9ba1a07cdb415725854",
+          "slug": "creditmon",
+          "chain": "ethereum"
+        },
+        {
+          "name": "Ripples in the Pond",
+          "kind": "new_collection",
+          "source": "collections:created_date",
+          "contractAddress": "0xdec99da00290d15f0742b0abd26e4cd5d121f02a",
+          "slug": "ripples-in-the-pond-359382936",
+          "chain": "ethereum"
+        },
+        {
+          "name": "Echoes Between Seasons",
+          "kind": "new_collection",
+          "source": "collections:created_date",
+          "contractAddress": "0x48cb7a68a4cc296f0b01130703a5a76eb021fcea",
+          "slug": "echoes-between-seasons",
+          "chain": "ethereum"
+        },
+        {
+          "name": "0x9d02853b0a2797dfa90c1d207c88d36b650c02c3",
+          "kind": "new_collection",
+          "source": "collections:created_date",
+          "contractAddress": "0x9d02853b0a2797dfa90c1d207c88d36b650c02c3",
+          "slug": "0x9d02853b0a2797dfa90c1d207c88d36b650c02c3",
+          "chain": "ethereum"
+        },
+        {
+          "name": "0x902571ab86651983fcb2820d9777410becd8b47f",
+          "kind": "new_collection",
+          "source": "collections:created_date",
+          "contractAddress": "0x902571ab86651983fcb2820d9777410becd8b47f",
+          "slug": "0x902571ab86651983fcb2820d9777410becd8b47f",
+          "chain": "ethereum"
+        },
+        {
+          "name": "0x4bfbd8d517c6fc1f8a43033c87edd9fc7fb38a14",
+          "kind": "new_collection",
+          "source": "collections:created_date",
+          "contractAddress": "0x4bfbd8d517c6fc1f8a43033c87edd9fc7fb38a14",
+          "slug": "0x4bfbd8d517c6fc1f8a43033c87edd9fc7fb38a14",
+          "chain": "ethereum"
+        },
+        {
+          "name": "0x70dbeb21ae962fc20eab5de118b1370f56c8faf5",
+          "kind": "new_collection",
+          "source": "collections:created_date",
+          "contractAddress": "0x70dbeb21ae962fc20eab5de118b1370f56c8faf5",
+          "slug": "0x70dbeb21ae962fc20eab5de118b1370f56c8faf5",
+          "chain": "ethereum"
+        },
+        {
+          "name": "0x33b2fabaa88a6b2e8457cd2410dbe3c0b2b70744",
+          "kind": "new_collection",
+          "source": "collections:created_date",
+          "contractAddress": "0x33b2fabaa88a6b2e8457cd2410dbe3c0b2b70744",
+          "slug": "0x33b2fabaa88a6b2e8457cd2410dbe3c0b2b70744",
+          "chain": "ethereum"
+        },
+        {
+          "name": "0x61792dbe2b00566d7d39906c32b876d7e49b4b63",
+          "kind": "new_collection",
+          "source": "collections:created_date",
+          "contractAddress": "0x61792dbe2b00566d7d39906c32b876d7e49b4b63",
+          "slug": "0x61792dbe2b00566d7d39906c32b876d7e49b4b63",
+          "chain": "ethereum"
+        },
+        {
+          "name": "0x915a56129df883191adf228fd9b943beb1136884",
+          "kind": "new_collection",
+          "source": "collections:created_date",
+          "contractAddress": "0x915a56129df883191adf228fd9b943beb1136884",
+          "slug": "0x915a56129df883191adf228fd9b943beb1136884",
+          "chain": "ethereum"
+        },
+        {
+          "name": "0xf3ff64aae5267136ea9c234bae52eedbce207691",
+          "kind": "new_collection",
+          "source": "collections:created_date",
+          "contractAddress": "0xf3ff64aae5267136ea9c234bae52eedbce207691",
+          "slug": "0xf3ff64aae5267136ea9c234bae52eedbce207691",
+          "chain": "ethereum"
+        },
+        {
+          "name": "0x0fb9ddddaa9f8a6eb289a274bcf01a14a02a2d5a",
+          "kind": "new_collection",
+          "source": "collections:created_date",
+          "contractAddress": "0x0fb9ddddaa9f8a6eb289a274bcf01a14a02a2d5a",
+          "slug": "0x0fb9ddddaa9f8a6eb289a274bcf01a14a02a2d5a",
+          "chain": "ethereum"
+        },
+        {
+          "name": "0xf8cc6e20de7666776f42d7418c14a801d3158a24",
+          "kind": "new_collection",
+          "source": "collections:created_date",
+          "contractAddress": "0xf8cc6e20de7666776f42d7418c14a801d3158a24",
+          "slug": "0xf8cc6e20de7666776f42d7418c14a801d3158a24",
+          "chain": "ethereum"
+        },
+        {
+          "name": "0x7f559330baab7a0d6ff463881085840a3ab54959",
+          "kind": "new_collection",
+          "source": "collections:created_date",
+          "contractAddress": "0x7f559330baab7a0d6ff463881085840a3ab54959",
+          "slug": "0x7f559330baab7a0d6ff463881085840a3ab54959",
+          "chain": "ethereum"
+        },
+        {
+          "name": "0xd26aa61eb104c54fbacf9908f657d236ec57df3b",
+          "kind": "new_collection",
+          "source": "collections:created_date",
+          "contractAddress": "0xd26aa61eb104c54fbacf9908f657d236ec57df3b",
+          "slug": "0xd26aa61eb104c54fbacf9908f657d236ec57df3b",
+          "chain": "ethereum"
+        },
+        {
+          "name": "0x5dfc1feaed8bcf7718e524c72290ee74206f4f8c",
+          "kind": "new_collection",
+          "source": "collections:created_date",
+          "contractAddress": "0x5dfc1feaed8bcf7718e524c72290ee74206f4f8c",
+          "slug": "0x5dfc1feaed8bcf7718e524c72290ee74206f4f8c",
+          "chain": "ethereum"
+        }
+      ],
+      "scored": [
+        {
+          "name": "The Doomed Machine",
+          "kind": "live",
+          "source": "drops:upcoming",
+          "score": 71,
+          "coverage": 4,
+          "riskScore": 0,
+          "confidence": 0.76,
+          "rejected": null,
+          "contractAddress": "0x996f17abede0b06bf2a30e95c748f376b1fe0aa2",
+          "slug": "the-doomed-machine",
+          "chain": "ethereum"
+        },
+        {
+          "name": "The Isle of the 0xdead",
+          "kind": "live",
+          "source": "drops:minting",
+          "score": 65,
+          "coverage": 4,
+          "riskScore": 0,
+          "confidence": 0.76,
+          "rejected": null,
+          "contractAddress": "0x33bcd6fcef6014511a821ef84808937e120c2a3e",
+          "slug": "isleofthe0xdead",
+          "chain": "ethereum"
+        },
+        {
+          "name": "N3W YORKERS // By MLow",
+          "kind": "live",
+          "source": "drops:minting",
+          "score": 58,
+          "coverage": 4,
+          "riskScore": 0,
+          "confidence": 0.76,
+          "rejected": null,
+          "contractAddress": "0x3386e98e3835d25f20e9a4e2c0bbb9859fedc9c4",
+          "slug": "newyorkers",
+          "chain": "ethereum"
+        },
+        {
+          "name": "JPEG Frens",
+          "kind": "live",
+          "source": "drops:upcoming",
+          "score": 69,
+          "coverage": 4,
+          "riskScore": 0,
+          "confidence": 0.76,
+          "rejected": null,
+          "contractAddress": "0xe31703379e32cad7502a594a854a76f9bb0be0e5",
+          "slug": "jpeg-frens",
+          "chain": "ethereum"
+        },
+        {
+          "name": "Koi No Yokan",
+          "kind": "live",
+          "source": "drops:minting",
+          "score": 60,
+          "coverage": 3,
+          "riskScore": 0,
+          "confidence": 0.72,
+          "rejected": null,
+          "contractAddress": "0x4fbb1325584e24e199d467b7217dc5944581bac0",
+          "slug": "koi-no-yokan",
+          "chain": "ethereum"
+        },
+        {
+          "name": "FLORES",
+          "kind": "live",
+          "source": "drops:minting",
+          "score": 60,
+          "coverage": 3,
+          "riskScore": 0,
+          "confidence": 0.72,
+          "rejected": null,
+          "contractAddress": "0x3c0f4f965c837cf2f2512461e5c6b256b4c8286e",
+          "slug": "flores-by-jimena",
+          "chain": "ethereum"
+        },
+        {
+          "name": "Facets",
+          "kind": "live",
+          "source": "drops:minting",
+          "score": 59,
+          "coverage": 3,
+          "riskScore": 0,
+          "confidence": 0.72,
+          "rejected": null,
+          "contractAddress": "0xa219558e037063879315d6c0dc37aa29e1ed9f07",
+          "slug": "facetsart",
+          "chain": "ethereum"
+        },
+        {
+          "name": "Quantum Echoes",
+          "kind": "live",
+          "source": "drops:upcoming",
+          "score": 55,
+          "coverage": 3,
+          "riskScore": 0,
+          "confidence": 0.72,
+          "rejected": null,
+          "contractAddress": "0x5a5c9c3cd186d95eff4da56ce48a173c7e46455a",
+          "slug": "qft-quantum-echoes",
+          "chain": "ethereum"
+        },
+        {
+          "name": "PUNK OPERATORS",
+          "kind": "live",
+          "source": "drops:minting",
+          "score": 52,
+          "coverage": 3,
+          "riskScore": 0,
+          "confidence": 0.72,
+          "rejected": null,
+          "contractAddress": "0xc8753d17826750473e14f1163b602780da514053",
+          "slug": "punk-operators-pko",
+          "chain": "ethereum"
+        },
+        {
+          "name": "OK Poodles",
+          "kind": "live",
+          "source": "drops:upcoming",
+          "score": 51,
+          "coverage": 3,
+          "riskScore": 0,
+          "confidence": 0.72,
+          "rejected": null,
+          "contractAddress": "0x3c87e850aa882399830b78f52454d16b76c21001",
+          "slug": "ok-poodles",
+          "chain": "ethereum"
+        },
+        {
+          "name": "Royal Pains",
+          "kind": "live",
+          "source": "drops:minting",
+          "score": 49,
+          "coverage": 3,
+          "riskScore": 0,
+          "confidence": 0.72,
+          "rejected": null,
+          "contractAddress": "0x78969ee067da98f9e9ce23c46ff67818a5a7d756",
+          "slug": "royal-pains",
+          "chain": "ethereum"
+        },
+        {
+          "name": "Moon Over Easy",
+          "kind": "live",
+          "source": "drops:upcoming",
+          "score": 49,
+          "coverage": 3,
+          "riskScore": 0,
+          "confidence": 0.72,
+          "rejected": null,
+          "contractAddress": "0xfd492859cc88d41a6526bd98fc909885201cfe76",
+          "slug": "moon-over-easy",
+          "chain": "ethereum"
+        },
+        {
+          "name": "Round Two",
+          "kind": "live",
+          "source": "drops:minting",
+          "score": 49,
+          "coverage": 3,
+          "riskScore": 0,
+          "confidence": 0.72,
+          "rejected": null,
+          "contractAddress": "0x8c1aba96cc700df56d492f302ab19213e478cd37",
+          "slug": "round-two-170093942",
+          "chain": "ethereum"
+        },
+        {
+          "name": "Magic Caps",
+          "kind": "live",
+          "source": "drops:minting",
+          "score": 49,
+          "coverage": 3,
+          "riskScore": 0,
+          "confidence": 0.72,
+          "rejected": null,
+          "contractAddress": "0x23d662e8435f78c5bf26e6b404795e0e25229537",
+          "slug": "magic-caps-509129627",
+          "chain": "ethereum"
+        },
+        {
+          "name": "Hard Headed",
+          "kind": "live",
+          "source": "drops:minting",
+          "score": 49,
+          "coverage": 3,
+          "riskScore": 0,
+          "confidence": 0.72,
+          "rejected": null,
+          "contractAddress": "0x48e6c5455608127c653846eadf807ef0ede6f882",
+          "slug": "hard-headed",
+          "chain": "ethereum"
+        },
+        {
+          "name": "Serpentine Mythos",
+          "kind": "live",
+          "source": "drops:minting",
+          "score": 49,
+          "coverage": 3,
+          "riskScore": 0,
+          "confidence": 0.72,
+          "rejected": null,
+          "contractAddress": "0x249812e175da03c86422579593df118ef735da3d",
+          "slug": "serpentine-mythos",
+          "chain": "ethereum"
+        },
+        {
+          "name": "Interstellar Inn",
+          "kind": "live",
+          "source": "drops:minting",
+          "score": 49,
+          "coverage": 3,
+          "riskScore": 0,
+          "confidence": 0.72,
+          "rejected": null,
+          "contractAddress": "0xe9a135f32053689532b21b4ecc6b9810b48c5a65",
+          "slug": "interstellar-inn",
+          "chain": "ethereum"
+        },
+        {
+          "name": "Cyclops: Knock Knock!",
+          "kind": "live",
+          "source": "drops:upcoming",
+          "score": 49,
+          "coverage": 3,
+          "riskScore": 0,
+          "confidence": 0.72,
+          "rejected": null,
+          "contractAddress": "0x22faab822e6c8d7493906d26b94d68d1e81e05de",
+          "slug": "knock-knock-209987659",
+          "chain": "ethereum"
+        },
+        {
+          "name": "2o1 Patrons",
+          "kind": "live",
+          "source": "drops:upcoming",
+          "score": 49,
+          "coverage": 3,
+          "riskScore": 0,
+          "confidence": 0.72,
+          "rejected": null,
+          "contractAddress": "0xe3af4514109447b910e614ded11a7e452d2a0234",
+          "slug": "2o1-patrons",
+          "chain": "ethereum"
+        },
+        {
+          "name": "The Odyssey: Monster Crush",
+          "kind": "live",
+          "source": "drops:minting",
+          "score": 48,
+          "coverage": 3,
+          "riskScore": 0,
+          "confidence": 0.72,
+          "rejected": null,
+          "contractAddress": "0x479ddeaf47fdb26ce874a9d5d1dae3d17803b9e9",
+          "slug": "monster-crush",
+          "chain": "ethereum"
+        },
+        {
+          "name": "Bloom by Darbles",
+          "kind": "live",
+          "source": "drops:upcoming",
+          "score": 41,
+          "coverage": 3,
+          "riskScore": 0,
+          "confidence": 0.72,
+          "rejected": null,
+          "contractAddress": "0x5ac09f1ce2a3be5dfc5d92a7b47dbe8f7d22b5b6",
+          "slug": "bloombydarbles",
+          "chain": "ethereum"
+        },
+        {
+          "name": "The Odyssey: Siren Song",
+          "kind": "live",
+          "source": "drops:upcoming",
+          "score": 41,
+          "coverage": 3,
+          "riskScore": 0,
+          "confidence": 0.72,
+          "rejected": null,
+          "contractAddress": "0xcc91815a7727d8a9ed1fbd86bc562ce27b23519a",
+          "slug": "siren-song-649652985",
+          "chain": "ethereum"
+        }
+      ],
+      "meta": {
+        "attempted": 3,
+        "succeeded": 3,
+        "requests": 30,
+        "eventEnriched": 0,
+        "holderEnriched": 4,
+        "totalDiscovered": 73,
+        "totalScored": 22,
+        "scoreQualified": 22,
+        "coverageSuppressed": 22,
+        "riskFlagged": 0
+      }
+    }
+  }
+}
